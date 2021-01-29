@@ -11,6 +11,8 @@
         :label="$t('textFieldLabelSearchSeat')"
         single-line
         hide-details
+        @focus="onFocusInText"
+        @blur="outFocusInText"
       ></v-text-field>
     </v-card-title>
 
@@ -70,6 +72,7 @@ export default {
         { text: this.$i18n.t("textNumber"), value: "number" },
         { text: "", value: "showSeatButton" },
       ],
+      textFocusStatus: false,
     };
   },
   watch: {
@@ -99,6 +102,14 @@ export default {
     eventBus.$off("pushEachEmployeeSeatMap");
   },
   methods: {
+    onFocusInText() {
+      this.textFocusStatus = true;
+      eventBus.$emit("pushFocusStatus", this.textFocusStatus);
+    },
+    outFocusInText() {
+      this.textFocusStatus = false;
+      eventBus.$emit("pushFocusStatus", this.textFocusStatus);
+    },
     getAllEmployeeSeats() {
       if (this.allEmployeeSeatMap) {
         this.allEmployeeSeat = [];

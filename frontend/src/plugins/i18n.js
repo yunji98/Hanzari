@@ -23,7 +23,6 @@ const messages = {
         "tooltipCSVBtn": "현재 건물에 저장된 모든 자리 정보가 담긴 csv 파일을 다운로드 및 수정 후 업로드할 수 있습니다.",
         "contextMenuDelete": "삭제하기",
         "contextMenuCopy": "복제하기",
-        "contextMenuSeatSize": "자리 크기 조정하기",
         "contextMenuViewSeatAboutEmployeeName": "사원명",
         "contextMenuViewSeatAboutNumber": "내선번호",
         "contextMenuViewSeatAboutDepartment": "부서명",
@@ -51,7 +50,7 @@ const messages = {
         "floorSeatLayout": "{floorName}층 자리 배치도",
         "confirmSave": "저장하시겠습니까? 저장 완료 1초 뒤 새로고침 됩니다.",
         "confirmSaveBeforeChangeBuilding": "{buildingName}의 {floorName}으로 이동하시겠습니까? (건물 간 이동은 현재 건물에서 진행되던 작업을 저장한 후 가능합니다. 저장 완료 1초 뒤 새로고침 됩니다.)",
-
+        "alertModifyAllSeats":"너비 또는 넓이를 입력해야 합니다",
         "titleConfirmUploadCSV": "CSV 파일 업로드",
         "titleConfirmSave": "저장",
         "titleConfirmMoveSeatToAnotherFloor": "층간 자리이동",
@@ -126,6 +125,8 @@ const messages = {
 
         //ManageSeats.vue
         "textMakeSeat": "자리 만들기",
+        "textChangeAllSeatSize": "전체 자리 크기 조정하기",
+        "textChangeSeatSize": "자리 크기 조정하기",
         "textInformationOfSeat": "자리 상세정보",
         "textOpactiyOfSeat": "자리 불투명도",
         "tooltipAddSeatSwitch": "스위치를 켜면 선택한 자리의 개수만큼 도면화면 위에 드래그하여 자리 생성이 가능합니다.",
@@ -148,6 +149,7 @@ const messages = {
         "reorderSeatName": "자리명 재정렬",
         "reorder": "재정렬하기",
         "mapping": "매핑하기",
+        "alertNoMemoComment": "입력된 메모가 없습니다.",
 
         //ProgressDialog.vue
         "loadingData": "데이터 로딩중..",

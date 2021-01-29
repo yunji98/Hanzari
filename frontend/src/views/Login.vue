@@ -64,13 +64,11 @@
 </template>
 
 <script>
-const HOST = "http://172.30.6.192:8080";
-
+const HOST = "http://172.30.6.192:8082";
 export default {
   data() {
     return {
       employeeId: null,
-
       password: null,
       errorLoginStatus: false,
     };
@@ -96,14 +94,14 @@ export default {
             errorStatus = error.response.status;
           })
           .then((res) => {
-            //·Î±×ÀÎ ½ÇÆÐ½Ã
+            //ï¿½Î±ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ð½ï¿½
             if (errorStatus === 500) {
               this.errorLoginStatus = true;
               this.employeeId = null;
               this.password = null;
               return;
             }
-            //·Î±×ÀÎ ¼º°ø½Ã
+            //ï¿½Î±ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
             if (res) {
               if (res.status === 200) {
                 console.log(res.data.access_token);

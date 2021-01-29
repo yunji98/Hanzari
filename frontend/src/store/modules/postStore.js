@@ -1,7 +1,7 @@
 import axios from "axios";
 import { refreshToken } from '../../refreshToken.js'
 
-const HOST = "http://172.30.6.192:8080";
+const HOST = "http://172.30.6.192:8082";
 
 const postStore = {
     state: {
@@ -45,12 +45,13 @@ const postStore = {
         },
     },
     actions: {
-        async saveBuilding({rootState}, newBuilding) {
+        async saveBuilding({ rootState }, newBuilding) {
             console.log("save 빌딩 호출")
+            let errorStatus = null;
             let saveBuilding = {}
             saveBuilding.building_id = newBuilding.buildingId
             saveBuilding.building_name = newBuilding.buildingName
-            let errorStatus = null;
+            saveBuilding.building_order = newBuilding.buildingOrder
             try {
                 await axios
                     .post(
@@ -95,9 +96,8 @@ const postStore = {
                 console.log(error)
             }
         },
-        async pushFloors({ commit, state }, allFloorList) {
+        async pushFloors({ commit }, allFloorList) {
             console.log("save 층 리스트 push 호출")
-            console.log(allFloorList.length)
             for (let i = 0; i < allFloorList.length; i++) {
                 if (allFloorList[i].httpRequestPostStatus) {
                     let floorData = {};
@@ -109,8 +109,6 @@ const postStore = {
                     commit("PUSH_FLOORLIST", floorData);
                 }
             }
-
-            console.log(state.floorDataList.length)
             console.log("save 층 리스트 push 호출 끝")
         },
         async saveFloors({ rootState, commit, state }) {
@@ -175,7 +173,6 @@ const postStore = {
         },
         async saveSeats({ rootState, commit, state }) {
             console.log("save 자리 호출")
-            console.log(state.seatDataList)
             for (let i = 0; i < state.seatDataList.length; i++) {
                 let errorStatus = null;
                 try {

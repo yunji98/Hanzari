@@ -23,9 +23,9 @@
           >keyboard_arrow_right</v-icon
         >
         <v-divider vertical></v-divider>
-
-        <v-toolbar-title>{{ $t("projectName") }}</v-toolbar-title>
-
+        <div class="mx-3">
+          <v-toolbar-title>{{ $t("projectName") }}</v-toolbar-title>
+        </div>
         <v-spacer></v-spacer>
 
         <v-btn text disabled id="custom-disabled">{{
@@ -80,7 +80,7 @@
           :width="450"
           :right="true"
         >
-          <v-toolbar color="#2c4f91" height="128" dark> </v-toolbar>
+          <v-toolbar color="#2c4f91" height="95" dark> </v-toolbar>
           <FlowInformationTable />
         </v-navigation-drawer>
       </v-main>
@@ -96,7 +96,7 @@ import FlowInformationTable from "@/components/FlowInformationTable.vue";
 import ProgressDialog from "@/components/ProgressDialog.vue";
 import DepartmentColorChips from "@/components/DepartmentColorChips.vue";
 
-const HOST = "http://172.30.6.192:8080";
+const HOST = "http://172.30.6.192:8082";
 
 export default {
   name: "ViewerHanzari",

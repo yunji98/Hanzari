@@ -162,15 +162,13 @@
 </template>
 
 <script>
-import axios from "axios";
 import { eventBus } from "../main";
 import ProgressDialog from "@/components/ProgressDialog.vue";
 import EditPassword from "@/components/EditPassword.vue";
 import AuthorizeEmployee from "@/components/AuthorizeEmployee.vue";
 import BuildingSetting from "@/components/BuildingSetting.vue";
-import { refreshToken } from "../refreshToken.js";
 
-const HOST = "http://172.30.6.192:8080";
+const HOST = "http://172.30.6.192:8082";
 
 export default {
   components: {
@@ -192,9 +190,9 @@ export default {
     };
   },
   async created() {
-    if (this.$store.state.getStore.allBuildings === null) {
-      await this.getBuilding();
-    }
+    // �� ���� �����ϰ� ���������� �ٽ� ���ƿ��� �� ���� �������ֱ� ����
+    await this.getBuilding();
+
     if (this.$store.state.getStore.loginEmployeeObject === null) {
       await this.getLoginEmployeeObject();
     }

@@ -104,7 +104,7 @@ import DepartmentColorChips from "@/components/DepartmentColorChips.vue";
 import FlowInformationTable from "@/components/FlowInformationTable.vue";
 import { refreshToken } from "../refreshToken.js";
 
-const HOST = "http://172.30.6.192:8080";
+const HOST = "http://172.30.6.192:8082";
 
 export default {
   name: "Hanzari",

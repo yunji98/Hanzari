@@ -1,7 +1,7 @@
 import axios from "axios";
 import { refreshToken } from '../../refreshToken.js'
 
-const HOST = "http://172.30.6.192:8080";
+const HOST = "http://172.30.6.192:8082";
 
 const getStore = {
     state: {
@@ -99,10 +99,6 @@ const getStore = {
 
                         buildingList.push(newBuildingObject);
                     }
-
-                    buildingList.sort(function (a, b) {
-                        return a.buildingName < b.buildingName ? -1 : a.buildingName > b.buildingName ? 1 : 0;
-                    }); // 오름차순 정렬
 
                 }
             } catch (error) {
@@ -273,16 +269,8 @@ const getStore = {
                         newFloorObject.isObjFromDB = true;
                         newFloorObject.httpRequestPostStatus = false;
 
-                        allFloorList.push(newFloorObject);
+                        allFloorList.unshift(newFloorObject);
                     }
-
-                    allFloorList.sort(function (a, b) {
-                        return a.floorOrder < b.floorOrder
-                            ? -1
-                            : a.floorOrder > b.floorOrder
-                                ? 1
-                                : 0;
-                    });
 
                     for (let i = 0; i < allFloorList.length; i++) {
                         floorIdList.push(allFloorList[i].floorId);
@@ -479,6 +467,7 @@ const getStore = {
                         newSeatObject.width = response.data[i].width;
                         newSeatObject.height = response.data[i].height;
                         newSeatObject.degree = response.data[i].degree;
+                        newSeatObject.comment = response.data[i].comment;
                         newSeatObject.shapeId = response.data[i].shape_id;
                         newSeatObject.isObjFromDB = true;
                         newSeatObject.httpRequestPostStatus = false;
@@ -635,6 +624,7 @@ const getStore = {
                                 newSeatObject.width = response.data[j].width;
                                 newSeatObject.height = response.data[j].height;
                                 newSeatObject.degree = response.data[j].degree;
+                                newSeatObject.comment = response.data[i].comment;
                                 newSeatObject.shapeId = response.data[j].shape_id;
                                 newSeatObject.isObjFromDB = true;
                                 newSeatObject.httpRequestPostStatus = false;

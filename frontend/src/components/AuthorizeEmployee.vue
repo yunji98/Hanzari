@@ -135,11 +135,10 @@
 import axios from "axios";
 import { eventBus } from "../main";
 import { refreshToken } from "@/refreshToken.js";
-import i18n from "../plugins/i18n.js";
 
 import ProgressDialog from "@/components/ProgressDialog.vue";
 
-const HOST = "http://172.30.6.192:8080";
+const HOST = "http://172.30.6.192:8082";
 
 const Authority = {
   Viewer: "뷰어",
@@ -546,7 +545,6 @@ export default {
       this.$dialog
         .confirm(message, options)
         .then((dialog) => {
-          //console.log("ok");
           //데이터테이블에서 체크된 것들 모두 초기화하기
           this.leftDataTableSelectedItemList = [];
           this.rightDataTableSelectedItemList = [];
@@ -572,7 +570,6 @@ export default {
           );
         })
         .catch(() => {
-          //console.log("cancel");
         });
     },
     //API를 호출해서 권한을 변경시켜야할 사원들만 추출하기
@@ -628,7 +625,6 @@ export default {
       this.$dialog
         .confirm(message, options)
         .then((dialog) => {
-          //console.log("ok");
           this.pushEmployeeListToChangeAuthorityList("admin");
           this.pushEmployeeListToChangeAuthorityList("manager");
           this.pushEmployeeListToChangeAuthorityList("viewer");
@@ -637,7 +633,6 @@ export default {
           this.changeAuthority(this.employeeListToChangeAuthority);
         })
         .catch(() => {
-          //console.log("cancel");
         });
     },
 

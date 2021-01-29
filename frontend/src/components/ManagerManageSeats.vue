@@ -15,12 +15,11 @@
           :headers="headers"
           :items="this.$store.state.getStore.allEmployee"
           :search="search"
-          height="400px"
+          height="550px"
           class="elevation-1"
           :no-data-text="$t('dataTabelNoDataTextEmployee')"
           :footer-props="{
             'items-per-page-text': $t('dataTabelPerPageTextEmployee'),
-            'items-per-page-options': [5, 10],
           }"
         >
           <template v-slot:item="row">
@@ -29,11 +28,13 @@
               <td>{{ row.item.department }}</td>
               <td>{{ row.item.number }}</td>
               <td>
-                <v-icon
-                  large
+                <v-btn
+                  outlined
+                  color="#2c4f91"
+                  style="height: 30px; font-size: 12px"
                   id="mappingEmployeeToVacantButton"
                   @click="clickEmployeeToMapping(row.item)"
-                  >add_box</v-icon
+                  >{{ $t("mapping") }}</v-btn
                 >
               </td>
             </tr>
@@ -43,14 +44,26 @@
             {{ props.itemsLength }}
           </template>
         </v-data-table>
-        <v-card-text>
-          <v-btn color="pink lighten-3" @click="clickChangeSeatToVacant"
-            ><h4>
-              <v-icon large>person_add_disabled</v-icon
-              >{{ this.$t("btnChangeToVacant") }}
-            </h4></v-btn
-          ></v-card-text
-        >
+        <v-row>
+          <v-col>
+            <div class="mx-1">
+              <v-btn
+                outlined
+                color="#2c4f91"
+                style="
+                  height: 30px;
+                  font-size: 12px;
+                  width: 405px;
+                  top: 10px;
+                  margin-left: 5px;
+                "
+                @click="clickChangeSeatToVacant"
+              >
+                {{ this.$t("btnChangeToVacant") }}
+              </v-btn>
+            </div>
+          </v-col>
+        </v-row>
       </div>
     </v-card>
   </div>
@@ -58,10 +71,8 @@
 
 <script>
 import { eventBus } from "../main";
-import axios from "axios";
-import { refreshToken } from "@/refreshToken.js";
 
-const HOST = "http://172.30.6.192:8080";
+const HOST = "http://172.30.6.192:8082";
 
 export default {
   name: "ManagerManageSeats",
@@ -97,14 +108,14 @@ export default {
     },
   },
   created() {
-    // DB¿¡ ÀÌ¹Ì ÀÖÀ» ¶§ + Ãþ µ¥ÀÌÅÍ °ÇµéÁö ¾ÊÀ½
+    // DBï¿½ï¿½ ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ + ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Çµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     if (this.allFloorList && this.allFloorList.length) {
       this.currentSelectedFloorObject = this.allFloorList[
         this.allFloorList.length - 1
       ];
     }
 
-    // ManagerManageSeats.vue µé¾î¿À±â Àü¿¡ ÇöÀçÃþÀÌ ¹Ù²î¾úÀ»¶§(´Ü¼ø Ãþ ÀÌµ¿)
+    // ManagerManageSeats.vue ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(ï¿½Ü¼ï¿½ ï¿½ï¿½ ï¿½Ìµï¿½)
     if (this.selectedFloorObjectToManageSeats) {
       this.currentSelectedFloorObject = this.selectedFloorObjectToManageSeats;
     }

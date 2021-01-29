@@ -77,6 +77,24 @@
         style="text-align: center"
       ></canvas>
       <v-btn
+        id="zoomInButton"
+        v-on:click="zoomStatus = false"
+        @click="clickZoomInButton"
+        fab
+        small
+      >
+        <v-icon medium>add</v-icon>
+      </v-btn>
+      <v-btn
+        id="zoomOutButton"
+        v-on:click="zoomStatus = false"
+        @click="clickZoomOutButton"
+        fab
+        small
+      >
+        <v-icon medium>remove</v-icon>
+      </v-btn>
+      <v-btn
         id="resetZoomButton"
         v-on:click="zoomStatus = false"
         @click="clickResetToRatioBtn"
@@ -122,12 +140,9 @@
 
 <script>
 import html2canvas from "html2canvas";
-//import jsPDF from "jspdf";
 import { eventBus } from "../main.js";
-import axios from "axios";
-import { refreshToken } from "@/refreshToken.js";
 
-const HOST = "http://149.28.141.163:8080";
+const SCALE_FACTOR = 1.2;
 export default {
   name: "AssignSeats",
   data() {
@@ -221,6 +236,13 @@ export default {
 
       //현재 상태를 저장하기 위한 상태
       saveStatus: null,
+
+      //캔버스의 기본 스케일 값
+      canvasScale: 1,
+      canvasOriginalHeight: 843,
+      canvasOriginalWidth: 1453,
+
+      tabFocus: false,
     };
   },
   created() {
@@ -286,15 +308,13 @@ export default {
 
     //만들고자 하는 공석의 개수를 받기 위한 event
     eventBus.$on("pushSelectedNumberOfAddSeat", (numberOfAddSeat) => {
-      console.log(numberOfAddSeat);
+      //console.log(numberOfAddSeat);
       this.numberOfAddSeat = numberOfAddSeat;
     });
 
     //현재 층의 모든 자리를 삭제하기 위한 상태값(유)을 받기 위한 event
-    eventBus.$on("pushDeleteAllSeatStatus", (deleteAllSeatStatus) => {
-      if (deleteAllSeatStatus) {
-        this.clickdeleteAllBtn();
-      }
+    eventBus.$on("pushDeleteAllSeatStatus", () => {
+      this.clickdeleteAllBtn();
     });
 
     //공석에 사원을 매핑하고자 함수를 호출하기 위한 event
@@ -370,9 +390,7 @@ export default {
           .then((dialog) => {
             this.moveSeatToAnotherFloor(floorId, moveFloorName);
           })
-          .catch(() => {
-            //console.log("cancel");
-          });
+          .catch(() => {});
       }
     });
 
@@ -396,7 +414,6 @@ export default {
           this.$dialog
             .confirm(message, options)
             .then((dialog) => {
-              //console.log("ok");
               this.moveSeatToAnotherBuilding(
                 moveBuildingId,
                 moveBuildingName,
@@ -404,9 +421,7 @@ export default {
                 moveFloorName
               );
             })
-            .catch(() => {
-              //console.log("cancel");
-            });
+            .catch(() => {});
         } else {
           this.$notice.info({
             title: this.$i18n.t("alertMoveSeatToAnotherFloor"),
@@ -454,6 +469,15 @@ export default {
       this.loadImageFile(
         this.allImageMap.get(this.currentSelectedFloorObject.floorId).imgPath
       );
+    });
+
+    //탭에서 키보드 이벤트 사용시(텍스트 입력,,) 이 컴포넌트에서 이벤트 없애기 위함
+    eventBus.$on("pushFocusStatus", (textFocusStatus) => {
+      this.tabFocus = textFocusStatus;
+    });
+
+    eventBus.$on("pushNewMemoComment", (memoComment) => {
+      this.writeMemo(memoComment);
     });
 
     //자리 상세정보 라디오에서 선택한 값을 받기 위한 event
@@ -527,6 +551,8 @@ export default {
     eventBus.$off("pushAllFloorList");
     eventBus.$off("changeSeatToVacant");
     eventBus.$off("pushAllImageMap");
+    eventBus.$off("pushFocusStatus");
+    eventBus.$off("pushNewMemoComment");
     eventBus.$off("showSeatHighlight");
     eventBus.$off("showDepartmentSeatHighlight");
     eventBus.$off("pushDeletedFloorList");
@@ -550,6 +576,7 @@ export default {
           imageSmoothingEnabled: false,
           enableRetinaScaling: false,
         });
+        console.log(this.floorCanvas.getZoom());
 
         let toolBarItemsHeight = document
           .getElementById("toolbar")
@@ -561,10 +588,32 @@ export default {
         let originalAssignSeatsScreenHeight =
           window.innerHeight - toolBarItemsHeight - 30;
 
-        this.floorCanvas.setHeight(originalAssignSeatsScreenHeight);
-        this.floorCanvas.setWidth(originalAssignSeatsScreenWidth - 450);
-        console.log(originalAssignSeatsScreenHeight);
-        console.log(originalAssignSeatsScreenWidth - 450);
+        //브라우저 창의 크기가 원본크기보다 작게 로드할때
+        //screenLeft, top은 브라우저창과 컴퓨터화면 사이의 간격임.
+        if (window.screenLeft > 0 || window.screenTop > 0) {
+          let zoom;
+
+          if (1453 < originalAssignSeatsScreenWidth) {
+            zoom = originalAssignSeatsScreenHeight / 843;
+
+            if (zoom * 1453 > originalAssignSeatsScreenWidth) {
+              zoom = originalAssignSeatsScreenWidth / 1453;
+            }
+          } else {
+            zoom = originalAssignSeatsScreenWidth / 1453;
+
+            if (zoom * 843 > originalAssignSeatsScreenHeight) {
+              zoom = originalAssignSeatsScreenHeight / 843;
+            }
+          }
+          this.canvasScale = zoom;
+
+          this.floorCanvas.setHeight(this.canvasOriginalHeight * this.canvasScale);
+          this.floorCanvas.setWidth(this.canvasOriginalWidth * this.canvasScale);
+        } else {
+          this.floorCanvas.setHeight(originalAssignSeatsScreenHeight);
+          this.floorCanvas.setWidth(originalAssignSeatsScreenWidth - 450);
+        }
 
         this.setMouseWheel(); //마우스 휠과 Ctrl 키로 zoom in/out
         this.setLeftDragEventForFloorCanvas(); //왼쪽 마우스 드래그 이벤트 함수
@@ -574,30 +623,44 @@ export default {
         this.ctrlKeyPressedForMultiSelection(); //ctrl키 누르고 도형 선택시 복수선택 가능
         this.whenResizingWindow(); //브라우저 창의 크기를 조절할때 (캔버스 확장/축소됨)
 
-        this.floorCanvas.on("object:moving", function (e) {
+        this.floorCanvas.on("object:moving", (e) => {
           //자리 움직이면 자동으로 도면 움직임이 잠김
           this.lockStatus = false;
           this.moveStatus = true;
+          this.setDefaultCursor();
         });
 
-        this.floorCanvas.on("object:scaling", function (e) {
+        this.floorCanvas.on("object:scaling", (e) => {
           //자리 크기가 변화되면 자동으로 도면 움직임이 잠김
           this.lockStatus = false;
           this.moveStatus = true;
+          this.setDefaultCursor();
 
           let obj = e.target;
           let textObject = obj.item(1);
+
           let scaleX = obj.width / (obj.width * obj.scaleX);
           let scaleY = obj.height / (obj.height * obj.scaleX);
+          let width = obj.width * obj.scaleX;
+          let height = obj.height * obj.scaleY;
 
           textObject.set("lockScalingX", true);
           textObject.set("lockScalingY", true);
           textObject.set("scaleX", scaleX);
           textObject.set("scaleY", scaleY);
-
           obj.setCoords();
+
+          width = Number(width.toFixed(2));
+          height = Number(height.toFixed(2));
+          eventBus.$emit("sendDragSeatInformation", width + 1, height + 1);
         });
       }
+    },
+    setDefaultCursor() {
+      this.floorCanvas.defaultCursor = "default";
+    },
+    setMoveCursor() {
+      this.floorCanvas.defaultCursor = "move";
     },
     whenResizingWindow() {
       let originalAssignSeatsScreenWidth = document
@@ -617,13 +680,13 @@ export default {
         toolBarItemsHeight -
         originalAssignSeatsScreenTop;
 
-      console.log(originalAssignSeatsScreenWidth);
-      console.log(originalAssignSeatsScreenHeight);
+      // console.log(originalAssignSeatsScreenWidth);
+      // console.log(originalAssignSeatsScreenHeight);
 
       window.onresize = (event) => {
-        console.log(event);
-        console.log(window.innerWidth);
-        console.log(window.innerHeight);
+        //console.log(event);
+        //console.log(window.innerWidth);
+        //console.log(window.innerHeight);
 
         let assignSeatsScreenWidth = document
           .getElementById("assignSeatsScreen")
@@ -676,28 +739,17 @@ export default {
         let evt = opt.e;
         let deltaY = evt.deltaY;
         this.zoom = this.floorCanvas.getZoom();
-        if (evt.ctrlKey === true) {
-          this.zoom = this.zoom - deltaY / 1000;
-          //if (this.zoom > 10) this.zoom = 10;
-          //else if (this.zoom < 1) this.zoom = 1;
-          //zoom in and out
-          this.floorCanvas.zoomToPoint(
-            new fabric.Point(evt.offsetX, evt.offsetY),
-            this.zoom
-          );
-          this.zoomStatus = true;
-        } else {
-          //reset canvas ratio
-          this.floorCanvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
-          this.zoomStatus = false;
-          this.lockStatus = false;
-          this.zoom = 1;
-          this.floorCanvas.selection = true;
-        }
+        this.zoom = this.zoom - deltaY / 1000;
+        this.floorCanvas.zoomToPoint(
+          new fabric.Point(evt.offsetX, evt.offsetY),
+          this.zoom
+        );
+        this.zoomStatus = true;
         opt.e.preventDefault();
         opt.e.stopPropagation();
       });
     },
+    // floorcanvas내부에서 mouse up down move감지해서 드래그 되면 어떤일 일어나는지에 대한 함수
     setLeftDragEventForFloorCanvas() {
       let dragStatus = false;
 
@@ -717,21 +769,42 @@ export default {
       this.floorCanvas.on("mouse:up", (event) => {
         let multiSelectionObjectWidthList = [];
         let multiSelectionObjectHeightList = [];
+
+        let activeObjects = this.floorCanvas.getActiveObjects();
         if (dragStatus) {
           if (event.button === 1) {
-            if (this.floorCanvas.getActiveObjects().length > 0) {
-              this.floorCanvas.getActiveObjects().forEach((obj) => {
-                console.log(obj);
-                multiSelectionObjectWidthList.push(obj.get("width") + 1);
-                multiSelectionObjectHeightList.push(obj.get("height") + 1);
+            if (activeObjects.length > 0) {
+              activeObjects.forEach((obj) => {
+                let width = obj.get("width") + 1;
+                let height = obj.get("height") + 1;
+                width = Number(width.toFixed(2));
+                height = Number(height.toFixed(2));
+                multiSelectionObjectWidthList.push(width);
+                multiSelectionObjectHeightList.push(height);
               });
-              console.log(multiSelectionObjectWidthList);
 
               eventBus.$emit(
                 "sendDragMultipleSeatList",
                 multiSelectionObjectWidthList,
                 multiSelectionObjectHeightList
               );
+
+              let comment = activeObjects[0].comment;
+
+              let warn = false;
+              for (let i = 1; i < activeObjects.length; i++) {
+                if (comment != activeObjects[i].comment) {
+                  warn = true;
+                  break;
+                }
+              }
+
+              if (warn) {
+                eventBus.$emit("pushMemoComment", "");
+              } else {
+                eventBus.$emit("pushMemoComment", comment);
+              }
+
               eventBus.$emit(
                 "pushManageSeatTabOfSelectedSeatsComponentStatus",
                 true
@@ -769,11 +842,6 @@ export default {
               stroke: this.getColor(null),
               strokeWidth: 1,
             });
-          } else if (this.floorCanvas.getActiveObject()) {
-            //contextMenu
-            let posX = event.e.clientX;
-            let posY = event.e.clientY;
-            this.showContextMenuOfOneSeat(posX, posY);
           }
         }
       });
@@ -795,6 +863,7 @@ export default {
               });
               this.lockStatus = false;
               this.floorCanvas.selection = true;
+              this.setDefaultCursor();
             }
 
             let pointer = this.floorCanvas.getPointer(event.e);
@@ -812,6 +881,7 @@ export default {
           }
         }
         if (this.lockStatus === true) {
+          this.setMoveCursor();
           if (this.panning && event && event.e) {
             let delta = new fabric.Point(
               event.e.movementX / 5,
@@ -927,7 +997,7 @@ export default {
             }
           });
 
-          console.log(multiSelectionObjectList.length);
+          // console.log(multiSelectionObjectList.length);
           if (multiSelectionObjectList.length > 0) {
             //selected:cleared(selection된 도형 객체 모두 selection RESET) 이벤트 자동 호출
             this.floorCanvas.discardActiveObject();
@@ -962,11 +1032,13 @@ export default {
             activeSelection = null;
 
             this.floorCanvas.discardActiveObject();
+            eventBus.$emit("pushMemoComment", null);
             eventBus.$emit(
               "pushManageSeatTabOfSelectedSeatsComponentStatus",
               false
             );
             eventBus.$emit("pushMappingEmployeeComponentStatus", false);
+            this.tabFocus = false;
           }
         }
       });
@@ -978,103 +1050,109 @@ export default {
       document.addEventListener("keyup", this.watchCtrlKeyUp);
     },
     watchCtrlKeyDown(event) {
-      let key = window.event ? window.event.keyCode : event.keyCode;
-      switch (key) {
-        case 17:
-          this.ctrlKey = true;
-          break;
+      if (!this.tabFocus) {
+        let key = window.event ? window.event.keyCode : event.keyCode;
+        switch (key) {
+          case 17:
+            this.ctrlKey = true;
+            break;
+        }
       }
     },
     watchCtrlKeyUp(event) {
-      let key = window.event ? window.event.keyCode : event.keyCode;
-      switch (key) {
-        case 17:
-          this.ctrlKey = false;
-          break;
+      if (!this.tabFocus) {
+        let key = window.event ? window.event.keyCode : event.keyCode;
+        switch (key) {
+          case 17:
+            this.ctrlKey = false;
+            break;
+        }
       }
     },
     manageKeyboard(event) {
-      let key = window.event ? window.event.keyCode : event.keyCode;
-      switch (key) {
-        case 37: // left
-          if (this.floorCanvas.getActiveObject()) {
-            let obj = this.floorCanvas.getActiveObject();
-            this.blockIntoCanvasArea(obj);
-            this.saveStatus = "ableSave";
-            eventBus.$emit("sendStoreStatus", this.saveStatus);
-            this.floorCanvas
-              .getActiveObject()
-              .set("left", this.floorCanvas.getActiveObject().left - 5);
-            this.floorCanvas
-              .getActiveObject()
-              .set("httpRequestPostStatus", true);
-            this.floorCanvas.renderAll();
-          }
-          break;
-        case 39: // right
-          if (this.floorCanvas.getActiveObject()) {
-            let obj = this.floorCanvas.getActiveObject();
-            this.blockIntoCanvasArea(obj);
-            this.saveStatus = "ableSave";
-            eventBus.$emit("sendStoreStatus", this.saveStatus);
-            this.floorCanvas
-              .getActiveObject()
-              .set("left", this.floorCanvas.getActiveObject().left + 5);
-            this.floorCanvas
-              .getActiveObject()
-              .set("httpRequestPostStatus", true);
-            this.floorCanvas.renderAll();
-          }
-          break;
-        case 38: // up
-          if (this.floorCanvas.getActiveObject()) {
-            let obj = this.floorCanvas.getActiveObject();
-            this.blockIntoCanvasArea(obj);
-            this.saveStatus = "ableSave";
-            eventBus.$emit("sendStoreStatus", this.saveStatus);
-            this.floorCanvas
-              .getActiveObject()
-              .set("top", this.floorCanvas.getActiveObject().top - 5);
-            this.floorCanvas
-              .getActiveObject()
-              .set("httpRequestPostStatus", true);
-            this.floorCanvas.renderAll();
-          }
-          break;
-        case 40: // down
-          if (this.floorCanvas.getActiveObject()) {
-            let obj = this.floorCanvas.getActiveObject();
-            this.blockIntoCanvasArea(obj);
-            this.saveStatus = "ableSave";
-            eventBus.$emit("sendStoreStatus", this.saveStatus);
-            this.floorCanvas
-              .getActiveObject()
-              .set("top", this.floorCanvas.getActiveObject().top + 5);
-            this.floorCanvas
-              .getActiveObject()
-              .set("httpRequestPostStatus", true);
-            this.floorCanvas.renderAll();
-          }
-          break;
-        case 110:
-        case 46: // delete
-          this.deleteBtn();
-          break;
-      }
-      if (this.ctrlKey) {
+      if (!this.tabFocus) {
+        let key = window.event ? window.event.keyCode : event.keyCode;
         switch (key) {
-          case 67:
-            this.copySelectedSeat();
+          case 37: // left
+            if (this.floorCanvas.getActiveObject()) {
+              let obj = this.floorCanvas.getActiveObject();
+              this.blockIntoCanvasArea(obj);
+              this.saveStatus = "ableSave";
+              eventBus.$emit("sendStoreStatus", this.saveStatus);
+              this.floorCanvas
+                .getActiveObject()
+                .set("left", this.floorCanvas.getActiveObject().left - 5);
+              this.floorCanvas
+                .getActiveObject()
+                .set("httpRequestPostStatus", true);
+              this.floorCanvas.renderAll();
+            }
             break;
-          case 86:
-            this.pasteSelectedSeat();
+          case 39: // right
+            if (this.floorCanvas.getActiveObject()) {
+              let obj = this.floorCanvas.getActiveObject();
+              this.blockIntoCanvasArea(obj);
+              this.saveStatus = "ableSave";
+              eventBus.$emit("sendStoreStatus", this.saveStatus);
+              this.floorCanvas
+                .getActiveObject()
+                .set("left", this.floorCanvas.getActiveObject().left + 5);
+              this.floorCanvas
+                .getActiveObject()
+                .set("httpRequestPostStatus", true);
+              this.floorCanvas.renderAll();
+            }
             break;
-          case 65:
-            //browser의 콘텐츠 전체선택 block
-            event.preventDefault();
-            event.stopPropagation();
-            this.selectAllSeat();
+          case 38: // up
+            if (this.floorCanvas.getActiveObject()) {
+              let obj = this.floorCanvas.getActiveObject();
+              this.blockIntoCanvasArea(obj);
+              this.saveStatus = "ableSave";
+              eventBus.$emit("sendStoreStatus", this.saveStatus);
+              this.floorCanvas
+                .getActiveObject()
+                .set("top", this.floorCanvas.getActiveObject().top - 5);
+              this.floorCanvas
+                .getActiveObject()
+                .set("httpRequestPostStatus", true);
+              this.floorCanvas.renderAll();
+            }
             break;
+          case 40: // down
+            if (this.floorCanvas.getActiveObject()) {
+              let obj = this.floorCanvas.getActiveObject();
+              this.blockIntoCanvasArea(obj);
+              this.saveStatus = "ableSave";
+              eventBus.$emit("sendStoreStatus", this.saveStatus);
+              this.floorCanvas
+                .getActiveObject()
+                .set("top", this.floorCanvas.getActiveObject().top + 5);
+              this.floorCanvas
+                .getActiveObject()
+                .set("httpRequestPostStatus", true);
+              this.floorCanvas.renderAll();
+            }
+            break;
+          case 110:
+          case 46: // delete
+            this.deleteBtn();
+            break;
+        }
+        if (this.ctrlKey) {
+          switch (key) {
+            case 67:
+              this.copySelectedSeat();
+              break;
+            case 86:
+              this.pasteSelectedSeat();
+              break;
+            case 65:
+              //browser의 콘텐츠 전체선택 block
+              event.preventDefault();
+              event.stopPropagation();
+              this.selectAllSeat();
+              break;
+          }
         }
       }
     },
@@ -1083,6 +1161,7 @@ export default {
         //자리가 변경되면 도면이 잠금
         this.lockStatus = false;
         this.floorCanvas.selection = true;
+        this.setDefaultCursor();
 
         if (this.floorCanvas.getActiveObjects().length === 1) {
           e.target.set("httpRequestPostStatus", true);
@@ -1097,38 +1176,61 @@ export default {
         eventBus.$emit("sendStoreStatus", this.saveStatus);
       });
     },
+    setCanvasZoom(scaleFactor) {
+      this.canvasScale = this.canvasScale * scaleFactor;
+      this.floorCanvas.setZoom(this.canvasScale);
+    },
+    clickZoomOutButton() {
+      this.setCanvasZoom(1 / SCALE_FACTOR);
+    },
+    clickZoomInButton() {
+      this.setCanvasZoom(SCALE_FACTOR);
+    },
     clickResetToRatioBtn() {
+      let toolBarItemsHeight = document
+        .getElementById("toolbar")
+        .getBoundingClientRect().height;
+
+      let originalAssignSeatsScreenWidth = document
+        .getElementById("toolbar")
+        .getBoundingClientRect().width;
+      let originalAssignSeatsScreenHeight =
+        window.innerHeight - toolBarItemsHeight - 30;
+
+      let zoom;
+
+      if (1453 < originalAssignSeatsScreenWidth) {
+        zoom = originalAssignSeatsScreenHeight / 843;
+
+        if (zoom * 1453 > originalAssignSeatsScreenWidth) {
+          zoom = originalAssignSeatsScreenWidth / 1453;
+        }
+      } else if (1453 > originalAssignSeatsScreenWidth) {
+        zoom = originalAssignSeatsScreenWidth / 1453;
+
+        if (zoom * 843 > originalAssignSeatsScreenHeight) {
+          zoom = originalAssignSeatsScreenHeight / 843;
+        }
+      } else if (1453 === originalAssignSeatsScreenWidth) {
+        zoom = 1;
+      }
+      this.canvasScale = zoom;
+      console.log(this.canvasScale);
+
       this.floorCanvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
+      this.floorCanvas.setZoom(this.canvasScale);
+
       this.lockStatus = false;
       this.floorCanvas.selection = true;
-
-      if (
-        this.allImageMap.get(this.currentSelectedFloorObject.floorId) != null
-      ) {
-        let typeCheck = this.allImageMap.get(
-          this.currentSelectedFloorObject.floorId
-        ).imgPath;
-
-        if (typeof typeCheck === "string") {
-          this.loadImageDBFile(
-            this.allImageMap.get(this.currentSelectedFloorObject.floorId)
-              .imgPath,
-            this.allImageMap.get(this.currentSelectedFloorObject.floorId)
-              .imgType
-          );
-        } else {
-          this.loadImageFile(
-            this.allImageMap.get(this.currentSelectedFloorObject.floorId)
-              .imgPath
-          );
-        }
-      }
+      this.setDefaultCursor();
     },
     clickLockBtn() {
       if (!this.lockStatus) {
         this.lockStatus = true;
+        this.setMoveCursor();
       } else {
         this.lockStatus = false;
+        this.setDefaultCursor();
       }
     },
     changeFloor() {
@@ -1142,6 +1244,7 @@ export default {
       this.floorCanvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
       this.lockStatus = false;
       this.floorCanvas.selection = true;
+      this.setDefaultCursor();
       this.changeSeatOpacity();
       this.viewSeatInfo();
 
@@ -1231,8 +1334,8 @@ export default {
         imgPath,
         (img) => {
           img.set({
-            scaleX: this.floorCanvas.width / img.width,
-            scaleY: this.floorCanvas.height / img.height,
+            scaleX: this.floorCanvas.width / img.width  / this.canvasScale ,
+            scaleY: this.floorCanvas.height / img.height  / this.canvasScale,
           });
           this.floorCanvas.setBackgroundImage(
             img,
@@ -1440,6 +1543,7 @@ export default {
           });
 
           let group = new fabric.Group([rectangle, textObject], {
+            hoverCursor: "pointer",
             seatId: this.createSeatUUID(),
             seatName: seatNameText,
             floorId: this.currentSelectedFloorObject.floorId,
@@ -1468,6 +1572,9 @@ export default {
 
         eventBus.$emit("pushAllSeatMap", this.allSeatMap);
         eventBus.$emit("sendStoreStatus", this.saveStatus);
+
+        eventBus.$emit("pushMemoComment", "");
+        eventBus.$emit("pushManageSeatTabOfSelectedSeatsComponentStatus", true);
       }
     },
     //새로운 department객체를 반환
@@ -1792,11 +1899,9 @@ export default {
         this.$dialog
           .confirm(message, options)
           .then((dialog) => {
-            //console.log("ok");
             this.mappingEmployee(employeeObject);
           })
           .catch(() => {
-            //console.log("cancel");
             return;
           });
       } else {
@@ -1844,11 +1949,15 @@ export default {
 
         if (this.viewSeatStatus === 0) {
           obj.item(1).set("text", employeeObject.name);
+          obj.item(1).set("fontFamily", "Nanum Gothic");
         } else if (this.viewSeatStatus === 1) {
           obj.item(1).set("text", employeeObject.number);
+          eachFloorSeatList[i].item(1).set("fontFamily", "Nanum Gothic");
         } else if (this.viewSeatStatus === 2) {
           obj.item(1).set("text", employeeObject.department);
+          obj.item(1).set("fontFamily", "Nanum Gothic");
         }
+
         obj.set("httpRequestPostStatus", true);
         eachEmployeeSeatList.push(obj);
         this.saveStatus = "ableSave";
@@ -1865,51 +1974,46 @@ export default {
       eventBus.$emit("pushAllSeatMap", this.allSeatMap);
       eventBus.$emit("pushEachEmployeeSeatMap", this.eachEmployeeSeatMap);
     },
+    writeMemo(memoComment) {
+
+      console.log("불림")
+      let activeObject = this.floorCanvas.getActiveObjects();
+
+      for (let i = 0; i < activeObject.length; i++) {
+        activeObject[i].set("httpRequestPostStatus", true);
+        activeObject[i].set("comment", memoComment);
+      }
+
+      this.saveStatus = "ableSave";
+      eventBus.$emit("sendStoreStatus", this.saveStatus);
+    },
     clickdeleteAllBtn() {
-      let message = {
-        title: this.$i18n.t("titleConfirmDeleteAll"),
-        body: this.$i18n.t("confirmDeleteAll"),
-      };
-      let options = {
-        html: true,
-        okText: this.$i18n.t("btnConfirm"),
-        cancelText: this.$i18n.t("btnCancel"),
-      };
-      this.$dialog
-        .confirm(message, options)
-        .then((dialog) => {
-          console.log("ok");
-          this.deleteEachFloorSeatList(this.currentSelectedFloorObject.floorId);
-          this.getEachFloorSeatList(
-            this.currentSelectedFloorObject.floorId
-          ).length = 0;
-          this.getEachDepartmentObjectList(
-            this.currentSelectedFloorObject.floorId
-          ).length = 0;
+      this.deleteEachFloorSeatList(this.currentSelectedFloorObject.floorId);
+      this.getEachFloorSeatList(
+        this.currentSelectedFloorObject.floorId
+      ).length = 0;
+      this.getEachDepartmentObjectList(
+        this.currentSelectedFloorObject.floorId
+      ).length = 0;
 
-          this.floorCanvas
-            .getObjects()
-            .slice()
-            .forEach((obj) => {
-              let groupToObject = obj.toObject(["seatId", "employeeId"]);
-              this.deleteEachEmployeeSeatList(groupToObject);
+      this.floorCanvas
+        .getObjects()
+        .slice()
+        .forEach((obj) => {
+          let groupToObject = obj.toObject(["seatId", "employeeId"]);
+          this.deleteEachEmployeeSeatList(groupToObject);
 
-              this.floorCanvas.remove(obj);
-            });
-
-          this.saveStatus = "ableSave";
-          eventBus.$emit("sendStoreStatus", this.saveStatus);
-
-          eventBus.$emit("pushAllSeatMap", this.allSeatMap);
-          eventBus.$emit("pushDepartmentMap", this.allDepartmentMap);
-          eventBus.$emit("pushEachEmployeeSeatMap", this.eachEmployeeSeatMap);
-
-          this.floorCanvas.discardActiveObject();
-        })
-        .catch(() => {
-          console.log("cancel");
-          return;
+          this.floorCanvas.remove(obj);
         });
+
+      this.saveStatus = "ableSave";
+      eventBus.$emit("sendStoreStatus", this.saveStatus);
+
+      eventBus.$emit("pushAllSeatMap", this.allSeatMap);
+      eventBus.$emit("pushDepartmentMap", this.allDepartmentMap);
+      eventBus.$emit("pushEachEmployeeSeatMap", this.eachEmployeeSeatMap);
+
+      this.floorCanvas.discardActiveObject();
     },
     deleteBtn() {
       let activeObject = null;
@@ -1932,7 +2036,6 @@ export default {
       this.$dialog
         .confirm(message, options)
         .then((dialog) => {
-          console.log("ok");
           this.floorCanvas.getActiveObjects().forEach((obj) => {
             if (obj.isObjFromDB) {
               let deleteSeat = {};
@@ -1970,7 +2073,6 @@ export default {
           this.floorCanvas.discardActiveObject();
         })
         .catch(() => {
-          console.log("cancel");
           return;
         });
     },
@@ -2029,7 +2131,6 @@ export default {
       this.$dialog
         .confirm(message, options)
         .then((dialog) => {
-          //console.log("ok");
           mappedSeat.forEach((obj) => {
             let beforeChangedDepartmentId = null;
             let groupToObject = obj.toObject([
@@ -2166,7 +2267,10 @@ export default {
                   top: cloned.item(0).top,
                   fontSize: parseInt(this.fontSize),
                   fill: this.getSeatTextColor(
-                    this.getDepartmentColor(cloned.employeeDepartmentId, cloned.floorId)
+                    this.getDepartmentColor(
+                      cloned.employeeDepartmentId,
+                      cloned.floorId
+                    )
                   ),
                   originX: "center",
                   originY: "center",
@@ -2186,7 +2290,10 @@ export default {
                   top: cloned.item(0).top,
                   fontSize: parseInt(this.fontSize),
                   fill: this.getSeatTextColor(
-                    this.getDepartmentColor(cloned.employeeDepartmentId, cloned.floorId)
+                    this.getDepartmentColor(
+                      cloned.employeeDepartmentId,
+                      cloned.floorId
+                    )
                   ),
                   originX: "center",
                   originY: "center",
@@ -2205,7 +2312,10 @@ export default {
                   top: cloned.item(0).top,
                   fontSize: parseInt(this.fontSize),
                   fill: this.getSeatTextColor(
-                    this.getDepartmentColor(cloned.employeeDepartmentId, cloned.floorId)
+                    this.getDepartmentColor(
+                      cloned.employeeDepartmentId,
+                      cloned.floorId
+                    )
                   ),
                   originX: "center",
                   originY: "center",
@@ -2222,7 +2332,10 @@ export default {
               top: cloned.item(0).top,
               fontSize: parseInt(this.fontSize),
               fill: this.getSeatTextColor(
-                this.getDepartmentColor(cloned.employeeDepartmentId, cloned.floorId)
+                this.getDepartmentColor(
+                  cloned.employeeDepartmentId,
+                  cloned.floorId
+                )
               ),
               originX: "center",
               originY: "center",
@@ -2281,10 +2394,30 @@ export default {
       });
       this.floorCanvas.setActiveObject(seats);
       this.floorCanvas.requestRenderAll();
+
+      let activeObjects = this.floorCanvas.getActiveObjects();
+
+      let comment = activeObjects[0].comment;
+
+      let warn = false;
+      for (let i = 1; i < activeObjects.length; i++) {
+        if (comment != activeObjects[i].comment) {
+          warn = true;
+          break;
+        }
+      }
+
+      if (warn) {
+        eventBus.$emit("pushMemoComment", "");
+      } else {
+        eventBus.$emit("pushMemoComment", comment);
+      }
+
+      eventBus.$emit("pushManageSeatTabOfSelectedSeatsComponentStatus", true);
     },
     showContextMenuOfOneSeat(clientX, clientY) {
       this.contextMenuStatus = false;
-      this.contextMenuXLocation = clientX + 10;
+      this.contextMenuXLocation = clientX + 20;
       this.contextMenuYLocation = clientY;
       this.$nextTick(() => {
         this.contextMenuStatus = true;
@@ -2314,8 +2447,16 @@ export default {
       group.on("mouseover", (event) => {
         let group = event.target;
         if (group != null) {
-          console.log(group.left);
-          console.log(group.top);
+          console.log(
+            "left : " +
+              group.left +
+              "top : " +
+              group.top +
+              "width :" +
+              group.width +
+              "height : " +
+              group.height
+          );
           let posX = event.e.clientX;
           let posY = event.e.clientY;
 
@@ -2338,10 +2479,27 @@ export default {
       });
 
       group.on("mousedown", (event) => {
-        console.log("mouse:down");
+        //context menu 관련
+        if (event.button === 3) {
+          console.log("right click");
+
+          this.floorCanvas.setActiveObject(group);
+          this.floorCanvas.requestRenderAll();
+
+          let posX = event.e.clientX;
+          let posY = event.e.clientY;
+
+          event.e.preventDefault();
+          event.e.stopPropagation();
+
+          this.showContextMenuOfOneSeat(posX, posY);
+        }
+
+        //두번째 탭 관련(크기,,, 및)
         this.moveStatus = true;
         if (this.lockStatus === true && this.moveStatus === true) {
           this.lockStatus = false;
+          this.setDefaultCursor();
           this.floorCanvas.selection = true;
           this.$notice.info({
             title: this.$i18n.t("alertCanvasLockStatus"),
@@ -2356,13 +2514,64 @@ export default {
         }
         let objWidth = group.get("width") + 1;
         let objHeight = group.get("height") + 1;
-        console.log(objWidth + "11111" + objHeight);
+
+        objWidth = Number(objWidth.toFixed(2));
+        objHeight = Number(objHeight.toFixed(2));
+
         eventBus.$emit("sendDragSeatInformation", objWidth, objHeight);
+
+        let activeObjects = this.floorCanvas.getActiveObjects();
+
+        if (activeObjects.length > 1) {
+          let comment = activeObjects[0].comment;
+
+          let warn = false;
+          for (let i = 1; i < activeObjects.length; i++) {
+            if (comment != activeObjects[i].comment) {
+              warn = true;
+              break;
+            }
+          }
+
+          if (warn) {
+            eventBus.$emit("pushMemoComment", "");
+          } else {
+            eventBus.$emit("pushMemoComment", comment);
+          }
+        } else {
+          eventBus.$emit("pushMemoComment", group.comment);
+        }
         eventBus.$emit("pushManageSeatTabOfSelectedSeatsComponentStatus", true);
       });
 
       group.on("mouseout", (event) => {
         this.toolTipStatus = false;
+      });
+
+      group.on("scaled", (event) => {
+        let width = group.width * group.scaleX;
+        let height = group.height * group.scaleY;
+
+        //console.log(width + "%%%" + event.target.getScaledWidth());
+        //console.log(height + "%%%" + event.target.getScaledHeight());
+
+        let textObject = group.item(1);
+        textObject.set("lockScalingX", true);
+        textObject.set("lockScalingY", true);
+        textObject.set("scaleX", 1);
+        textObject.set("scaleY", 1);
+
+        group.item(0).set("width", width);
+        group.item(0).set("height", height);
+
+        group.set("width", width);
+        group.set("height", height);
+        group.set("scaleX", 1);
+        group.set("scaleY", 1);
+
+        width = Number(width.toFixed(2));
+        height = Number(height.toFixed(2));
+        eventBus.$emit("sendDragSeatInformation", width, height);
       });
     },
     showToolTip(
@@ -2490,11 +2699,11 @@ export default {
         } else {
           //자리 여러개 층간 이동
           let asObject = seat.toObject(["top"]);
-          console.log(asObject.top);
+          //console.log(asObject.top);
           //seat.item(0).set("top", 0);
           seat.set("top", 0);
           let asObject2 = seat.toObject(["top"]);
-          console.log(asObject2.top);
+          //console.log(asObject2.top);
 
           // seat.set("left", Math.abs(previousLeft));
           //movePositionLeft = movePositionLeft + seat.width;
@@ -2525,7 +2734,6 @@ export default {
         this.currentSelectedFloorObject.floorId
       );
       this.seatNumber = 0;
-      let newSeatNumberArray = [];
 
       this.floorCanvas.getActiveObjects().forEach((obj) => {
         //현재 건물의 층에서 이동할 자리 삭제
@@ -2770,11 +2978,9 @@ export default {
       this.$dialog
         .confirm(message, options)
         .then((dialog) => {
-          //console.log("ok");
           this.saveFromCSVFileToDB(files[0]);
         })
         .catch(() => {
-          //console.log("cancel");
           return;
         });
     },
@@ -2800,6 +3006,7 @@ export default {
           let asObject = group.toObject(["employeeName"]);
           if (asObject.employeeName !== null) {
             eachFloorSeatList[i].item(1).set("text", asObject.employeeName);
+            eachFloorSeatList[i].item(1).set("fontFamily", "Nanum Gothic");
           } else {
             eachFloorSeatList[i].item(1).set("text", "");
           }
@@ -2810,6 +3017,7 @@ export default {
           let asObject = group.toObject(["employeeNumber"]);
           if (asObject.employeeNumber !== null) {
             eachFloorSeatList[i].item(1).set("text", asObject.employeeNumber);
+            eachFloorSeatList[i].item(1).set("fontFamily", "Nanum Gothic");
           } else {
             eachFloorSeatList[i].item(1).set("text", "");
           }
@@ -2822,6 +3030,7 @@ export default {
             eachFloorSeatList[i]
               .item(1)
               .set("text", asObject.employeeDepartment);
+            eachFloorSeatList[i].item(1).set("fontFamily", "Nanum Gothic");
           } else {
             eachFloorSeatList[i].item(1).set("text", "");
           }
@@ -2832,6 +3041,7 @@ export default {
           let asObject = group.toObject(["seatName"]);
           if (asObject.seatName !== null) {
             eachFloorSeatList[i].item(1).set("text", asObject.seatName);
+            eachFloorSeatList[i].item(1).set("fontFamily", "Nanum Gothic");
           }
         }
       }
@@ -2839,122 +3049,132 @@ export default {
       this.floorCanvas.renderAll();
     },
     changeSeatSize(seatWidth, seatHeight) {
-      let newSeatList = [];
-      let eachFloorSeatList = this.getEachFloorSeatList(
-        this.currentSelectedFloorObject.floorId
-      );
-      for (let i = 0; i < eachFloorSeatList.length; i++) {
-        console.log(eachFloorSeatList[i]);
-        let groupObject = eachFloorSeatList[i].toObject([
-          "employeeDepartmentId",
-          "employeeDepartment",
-        ]);
-        //let rectangleObject = eachFloorSeatList[i]
-        //  .item(0)
-        //  .toObject(["top", "left"]);
-        let newEmployeeObject = {};
-        newEmployeeObject.departmentId = groupObject.employeeDepartmentId;
-        newEmployeeObject.department = groupObject.employeeDepartment;
-        let color = this.getDepartmentObjectColor(newEmployeeObject);
-        if (color === null) {
-          color = "#808080";
+      //예외 처리
+      if (seatWidth === null || seatHeight === null) {
+        this.$notice.info({
+          title: this.$i18n.t("alertModifyAllSeats"),
+          styles: {
+            width: "400px",
+            marginLeft: "-815px",
+            top: "118px",
+            color: "red",
+            backgroundColor: "#2a88bd",
+          },
+          duration: 5,
+        });
+        return;
+      } else {
+        let newSeatList = [];
+        let eachFloorSeatList = this.getEachFloorSeatList(
+          this.currentSelectedFloorObject.floorId
+        );
+        for (let i = 0; i < eachFloorSeatList.length; i++) {
+          let groupObject = eachFloorSeatList[i].toObject([
+            "employeeDepartmentId",
+            "employeeDepartment",
+          ]);
+          let newEmployeeObject = {};
+          newEmployeeObject.departmentId = groupObject.employeeDepartmentId;
+          newEmployeeObject.department = groupObject.employeeDepartment;
+          let color = this.getDepartmentObjectColor(newEmployeeObject);
+          if (color === null) {
+            color = "#808080";
+          }
+          //eachFloorSeatList[i].set("left", groupObject.left + seatWidth);
+          //eachFloorSeatList[i].set("top", groupObject.top + seatWidth);
+          //-1을 수정함
+          eachFloorSeatList[i].set("width", seatWidth - 1);
+          eachFloorSeatList[i].set("height", seatHeight - 1);
+          eachFloorSeatList[i].item(0).set("width", seatWidth - 1);
+          eachFloorSeatList[i].item(0).set("height", seatHeight - 1);
+          //eachFloorSeatList[i].item(1).set("width", seatWidth - 1);
+          //eachFloorSeatList[i].item(1).set("height", seatHeight - 1);
+          //eachFloorSeatList[i].item(0).set("top", rectangleObject.top + seatWidth);
+          //eachFloorSeatList[i].item(0).set("left", rectangleObject.left + seatHeight);
+          //eachFloorSeatList[i].item(0).set("fill", color);
+          //eachFloorSeatList[i].item(0).set("dirty", true);
+          eachFloorSeatList[i].set("fill", color);
+          eachFloorSeatList[i].set("dirty", true);
+          eachFloorSeatList[i].set("httpRequestPostStatus", true);
+          //var sel = new fabric.ActiveSelection(this.floorCanvas.getObjects(), {
+          //  canvas: this.floorCanvas,
+          //});
+          //this.floorCanvas.setActiveObject(sel);
+          //this.floorCanvas.requestRenderAll();
+          this.floorCanvas.renderAll();
+          this.saveStatus = "ableSave";
         }
-        // console.log(groupObject.width + " vs " + seatWidth);
-        // console.log(groupObject.height + " vs " + seatHeight);
-        /* console.log(
-          eachFloorSeatList[i].get("width") +
-            " vs " +
-            eachFloorSeatList[i].item(0).get("width")
-        );
-        console.log(
-          eachFloorSeatList[i].get("height") +
-            " vs " +
-            eachFloorSeatList[i].item(0).get("height")
-        );*/
-        //eachFloorSeatList[i].set("left", groupObject.left + seatWidth);
-        //eachFloorSeatList[i].set("top", groupObject.top + seatWidth);
-        eachFloorSeatList[i].set("width", seatWidth - 1);
-        eachFloorSeatList[i].set("height", seatHeight - 1);
-        eachFloorSeatList[i].item(0).set("width", seatWidth - 1);
-        eachFloorSeatList[i].item(0).set("height", seatHeight - 1);
-        //eachFloorSeatList[i].item(1).set("width", seatWidth - 1);
-        //eachFloorSeatList[i].item(1).set("height", seatHeight - 1);
-        //eachFloorSeatList[i].item(0).set("top", rectangleObject.top + seatWidth);
-        //eachFloorSeatList[i].item(0).set("left", rectangleObject.left + seatHeight);
-        //eachFloorSeatList[i].item(0).set("fill", color);
-        //eachFloorSeatList[i].item(0).set("dirty", true);
-        eachFloorSeatList[i].set("fill", color);
-        eachFloorSeatList[i].set("dirty", true);
-        eachFloorSeatList[i].set("httpRequestPostStatus", true);
 
-        //this.floorCanvas.discardActiveObject();
-        //var sel = new fabric.ActiveSelection(this.floorCanvas.getObjects(), {
-        //  canvas: this.floorCanvas,
-        //});
-        //this.floorCanvas.setActiveObject(sel);
-        //this.floorCanvas.requestRenderAll();
-        this.floorCanvas.renderAll();
-        this.saveStatus = "ableSave";
-
-        /* console.log(
-          eachFloorSeatList[i].get("width") +
-            " vs " +
-            eachFloorSeatList[i].item(0).get("width")
+        this.floorCanvas.getObjects().forEach((obj) => {
+          newSeatList.push(obj);
+        });
+        //console.log(newSeatList.length);
+        this.allSeatMap.set(
+          this.currentSelectedFloorObject.floorId,
+          newSeatList
         );
-        console.log(
-          eachFloorSeatList[i].get("height") +
-            " vs " +
-            eachFloorSeatList[i].item(0).get("height")
-        );*/
+        eventBus.$emit("pushAllSeatMap", this.allSeatMap);
+        //this.floorCanvas.renderAll();
       }
-      this.floorCanvas.getObjects().forEach((obj) => {
-        newSeatList.push(obj);
-      });
-      console.log(newSeatList.length);
-      this.allSeatMap.set(this.currentSelectedFloorObject.floorId, newSeatList);
-      eventBus.$emit("pushAllSeatMap", this.allSeatMap);
-      //this.floorCanvas.renderAll();
     },
     changeDragSeatSize(seatWidth, seatHeight) {
-      let newSeatList = [];
-      this.floorCanvas.getActiveObjects().forEach((obj) => {
-        let groupObject = obj.toObject([
-          "employeeDepartmentId",
-          "employeeDepartment",
-        ]);
-        let newEmployeeObject = {};
-        newEmployeeObject.departmentId = groupObject.employeeDepartmentId;
-        newEmployeeObject.department = groupObject.employeeDepartment;
-        let color = this.getDepartmentObjectColor(newEmployeeObject);
-        if (color === null) {
-          color = "#808080";
-        }
-        //let objWidth = obj.get("width") + 1;
-        //let objHeight = obj.get("height") + 1;
-        //eventBus.$emit("sendDragSeatInformation", objWidth, objHeight);
+      if (seatWidth === null || seatHeight === null) {
+        this.$notice.info({
+          title: this.$i18n.t("alertModifyAllSeats"),
+          styles: {
+            width: "400px",
+            marginLeft: "-815px",
+            top: "118px",
+            color: "red",
+            backgroundColor: "#2a88bd",
+          },
+          duration: 5,
+        });
+        return;
+      } else {
+        let newSeatList = [];
+        this.floorCanvas.getActiveObjects().forEach((obj) => {
+          let groupObject = obj.toObject([
+            "employeeDepartmentId",
+            "employeeDepartment",
+          ]);
+          let newEmployeeObject = {};
+          newEmployeeObject.departmentId = groupObject.employeeDepartmentId;
+          newEmployeeObject.department = groupObject.employeeDepartment;
+          let color = this.getDepartmentObjectColor(newEmployeeObject);
+          if (color === null) {
+            color = "#808080";
+          }
+          //-1을 수정함
+          obj.set("width", seatWidth - 1);
+          obj.set("height", seatHeight - 1);
+          obj.item(0).set("width", seatWidth - 1);
+          obj.item(0).set("height", seatHeight - 1);
+          obj.set("dirty", true);
+          obj.set("httpRequestPostStatus", true);
 
-        obj.set("width", seatWidth - 1);
-        obj.set("height", seatHeight - 1);
-        obj.item(0).set("width", seatWidth - 1);
-        obj.item(0).set("height", seatHeight - 1);
-        obj.set("dirty", true);
-        obj.set("httpRequestPostStatus", true);
+          this.floorCanvas.renderAll();
+          this.saveStatus = "ableSave";
+        });
+        this.floorCanvas.getObjects().forEach((obj) => {
+          newSeatList.push(obj);
+        });
+        this.allSeatMap.set(
+          this.currentSelectedFloorObject.floorId,
+          newSeatList
+        );
+        eventBus.$emit("pushAllSeatMap", this.allSeatMap);
 
-        this.floorCanvas.renderAll();
-        this.saveStatus = "ableSave";
-      });
-      this.floorCanvas.getObjects().forEach((obj) => {
-        newSeatList.push(obj);
-      });
-      this.allSeatMap.set(this.currentSelectedFloorObject.floorId, newSeatList);
-      eventBus.$emit("pushAllSeatMap", this.allSeatMap);
+        this.floorCanvas.discardActiveObject();
+        this.floorCanvas.requestRenderAll();
+      }
     },
     downloadURI(uri, name) {
       var link = document.createElement("a");
       if (typeof link.download === "string") {
         link.href = uri;
         link.download = name;
-        console.log(link);
+        //console.log(link);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -2977,7 +3197,7 @@ export default {
         ).imgFileName;
         this.downloadURI(dataUrl, dataName);
       });
-      console.log(this.allCanvasImageMap);
+      //(this.allCanvasImageMap);
     },
     clickPrintBtn() {
       let dataUrl = document.getElementById("canvas").toDataURL();
@@ -3046,7 +3266,6 @@ export default {
       printWin.document.write(windowContent);
     },
     async saveData(moveSeat, moveBuildingName) {
-      console.log(moveSeat);
       if (this.allFloorList) {
         //db로 보낼 자리 삭제
         if (this.$store.state.deleteStore.deleteSeatIdList.length > 0) {
@@ -3084,6 +3303,7 @@ export default {
               "scaleY",
               "isObjFromDB",
               "httpRequestPostStatus",
+              "comment",
             ]);
 
             let rectangleObject = eachFloorSeatList[j]
@@ -3101,11 +3321,13 @@ export default {
               seatData.group_id = null;
               seatData.building_id = groupToObject.buildingId;
               seatData.employee_id = groupToObject.employeeId;
-              seatData.width = rectangleObject.width * groupToObject.scaleX;
-              seatData.height = rectangleObject.height * groupToObject.scaleY;
+              seatData.width =
+                (rectangleObject.width - 1) * groupToObject.scaleX;
+              seatData.height =
+                (rectangleObject.height - 1) * groupToObject.scaleY;
               seatData.degree = groupToObject.angle;
+              seatData.comment = groupToObject.comment;
               seatData.shape_id = "1";
-              console.log(seatData);
 
               this.$store.commit("PUSH_SEATLIST", seatData);
             }
@@ -3129,8 +3351,8 @@ export default {
             seatData.width = moveSeat[i].width * moveSeat[i].scaleX;
             seatData.height = moveSeat[i].height * moveSeat[i].scaleY;
             seatData.degree = moveSeat[i].angle;
+            seatData.comment = moveSeat[i].comment;
             seatData.shape_id = "1";
-            console.log(seatData);
 
             this.$store.commit("PUSH_SEATLIST", seatData);
           }
@@ -3173,7 +3395,6 @@ export default {
                 }
               }
             }
-            console.log(departmentObjectToSaveList);
           }
           if (departmentObjectToSaveList.length > 0) {
             await this.$store.dispatch(
@@ -3189,7 +3410,6 @@ export default {
           // 층에 이미지가 있다면
           if (this.allImageMap.get(floorId) != null) {
             let file = this.allImageMap.get(floorId).imgPath;
-            console.log(file);
             if (typeof file === "string") {
               //dbFile
             } else {
@@ -3199,8 +3419,6 @@ export default {
               let newImage = {};
               newImage.floorId = floorId;
               newImage.imgData = imgData;
-              console.log(imgData);
-              console.log(newImage);
               this.$store.commit("PUSH_IMAGEOBJECT", newImage);
             }
           }
@@ -3353,6 +3571,7 @@ export default {
           originX: "center",
           originY: "center",
         });
+        textObject.set("fontFamily", "Nanum Gothic");
       } else {
         textObject = new fabric.IText(employee.name, {
           left: rectangle.left,
@@ -3364,9 +3583,11 @@ export default {
           originX: "center",
           originY: "center",
         });
+        textObject.set("fontFamily", "Nanum Gothic");
       }
 
       let group = new fabric.Group([rectangle, textObject], {
+        hoverCursor: "pointer",
         seatId: seat.seatId,
         buildingId: seat.buildingId,
         seatName: seat.seatName,
@@ -3379,6 +3600,7 @@ export default {
         left: seat.x,
         top: seat.y,
         angle: seat.degree,
+        comment: seat.comment,
         isObjFromDB: seat.isObjFromDB,
         httpRequestPostStatus: seat.httpRequestPostStatus,
       });
@@ -3389,9 +3611,9 @@ export default {
     },
     loadLatestFloor() {
       //현재 층 이미지 로드
+      let newImageObject = {};
       if (this.latestFloorImageFromDb) {
         for (let i = 0; i < this.latestFloorImageFromDb.length; i++) {
-          let newImageObject = {};
           newImageObject.imgPath = this.latestFloorImageFromDb[i].imgPath;
           newImageObject.floorId = this.latestFloorImageFromDb[i].floorId;
           newImageObject.imgFileName = this.latestFloorImageFromDb[
@@ -3431,6 +3653,8 @@ export default {
                 eachEmployeeSeatList.push(group);
               }
             }
+            this.floorCanvas.setZoom(this.canvasScale);
+
             //자리가 있어야만 보낼 이벤트버스
             eventBus.$emit("pushAllSeatMap", this.allSeatMap);
             eventBus.$emit("pushEachEmployeeSeatMap", this.eachEmployeeSeatMap);
@@ -3497,13 +3721,23 @@ export default {
   width: 100%;
   height: 100%;
 }
+#zoomInButton {
+  top: 1.5%;
+  left: 1%;
+  position: absolute;
+}
+#zoomOutButton {
+  top: 7.5%;
+  left: 1%;
+  position: absolute;
+}
 #resetZoomButton {
-  top: 1%;
+  top: 13.5%;
   left: 1%;
   position: absolute;
 }
 #lockButton {
-  bottom: 1%;
+  bottom: 1.5%;
   left: 1%;
   position: absolute;
 }
