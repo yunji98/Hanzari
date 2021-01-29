@@ -180,7 +180,9 @@ export default {
       this.currentSelectedFloorObject = this.$store.state.getStore.allFloor[
         this.$store.state.getStore.allFloor.length - 1
       ];
-      this.allFloorList = this.$store.state.getStore.allFloor;
+      this.allFloorList = this.$store.state.getStore.allFloor.slice();
+      let tempList = this.allFloorList.slice();
+      this.allFloorList = tempList.reverse();
       this.clickFloorIndexes = this.currentSelectedFloorObject.floorId;
     }
 
@@ -283,7 +285,11 @@ export default {
     // 톱니바퀴 버튼을 누르면 층 세팅 가능
     getSettings() {
       //settings 리스트에 현재 층 리스트 복사
+      console.log(this.allFloorList);
       this.settingsFloorList = this.allFloorList.slice();
+      console.log(this.allFloorList);
+      console.log(this.settingsFloorList);
+
       //settings 화면에 textField model 설정
       for (let i = 0; i < this.allFloorList.length; i++) {
         let floorId = this.allFloorList[i].floorId;
@@ -304,19 +310,15 @@ export default {
     },
     // 층 추가
     addFloor() {
-      let addFloorTimeStamp;
       let newFloorObject = {};
       newFloorObject.floorId = this.createFloorUUID();
       newFloorObject.floorName = "";
       newFloorObject.buildingId = this.$store.state.buildingStore.building.buildingId;
-      newFloorObject.floorOrder = this.settingsFloorList.length;
+      newFloorObject.floorOrder = new Date().toISOString().substr(0, 23);
       newFloorObject.isObjFromDB = false;
       newFloorObject.httpRequestPostStatus = true;
 
-      this.settingsFloorList.push(newFloorObject);
-
-      addFloorTimeStamp = new Date().toISOString().substr(0, 23);
-      console.log(addFloorTimeStamp);
+      this.settingsFloorList.unshift(newFloorObject);
     },
     // 층 삭제
     removeFloor(floorId) {
@@ -358,7 +360,7 @@ export default {
         this.allFloorList = this.settingsFloorList.slice();
         if (this.allFloorList.length > 0) {
           this.clickFloor(
-            this.settingsFloorList[this.settingsFloorList.length - 1]
+            this.settingsFloorList[0]
           );
         } else {
           this.clickFloor(null);
@@ -405,6 +407,7 @@ export default {
       console.log(this.currentSelectedFloorObject);
 
       eventBus.$emit("sendStoreStatus", this.saveStatus);
+      console.log(this.allFloorList)
       eventBus.$emit("pushAllFloorList", this.allFloorList);
       eventBus.$emit(
         "pushSelectedFloorObject",

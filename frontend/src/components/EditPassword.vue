@@ -57,7 +57,7 @@ import axios from "axios";
 import { refreshToken } from "@/refreshToken.js";
 import { eventBus } from "../main";
 
-const HOST = "http://172.30.6.192:8080";
+const HOST = "http://172.30.6.192:8082";
 
 export default {
   data() {

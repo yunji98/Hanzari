@@ -80,12 +80,7 @@
               <v-btn
                 dark
                 color="#2c4f91"
-                style="
-                  width: 30px;
-                  height: 30px;
-                  color: white;
-                  font-size: 12px;
-                "
+                style="width: 30px; height: 30px; color: white; font-size: 12px"
                 @click="confirmBuildingSetting"
                 >{{ this.$i18n.t("btnConfirm") }}</v-btn
               >
@@ -98,11 +93,7 @@
 </template>
 
 <script>
-import axios from "axios";
-import { refreshToken } from "@/refreshToken.js";
 import { eventBus } from "../main";
-
-const HOST = "http://172.30.6.192:8080";
 
 export default {
   data() {
@@ -114,16 +105,17 @@ export default {
   created() {
     this.newBuildling.buildingId = this.createUUID();
     this.newBuildling.buildingName = null;
+    this.newBuildling.buildingOrder = new Date().toISOString().substr(0, 23);
 
     let firstFloor = {};
     firstFloor.floorId = this.createUUID();
     firstFloor.floorName = "";
     firstFloor.buildingId = this.newBuildling.buildingId;
-    firstFloor.floorOrder = 0;
+    firstFloor.floorOrder = new Date().toISOString().substr(0, 23);
     firstFloor.isObjFromDB = false;
     firstFloor.httpRequestPostStatus = true;
 
-    this.settingsFloorList.push(firstFloor);
+    this.settingsFloorList.unshift(firstFloor);
   },
   methods: {
     // key 생성
@@ -137,23 +129,19 @@ export default {
         }
       );
     },
-    // 층 추가
+    // 건물의 층 추가
     addFloor() {
-      let addFloorTimeStamp;
       let newFloorObject = {};
       newFloorObject.floorId = this.createUUID();
       newFloorObject.floorName = "";
       newFloorObject.buildingId = this.newBuildling.buildingId;
-      newFloorObject.floorOrder = this.settingsFloorList.length;
+      newFloorObject.floorOrder = new Date().toISOString().substr(0, 23);
       newFloorObject.isObjFromDB = false;
       newFloorObject.httpRequestPostStatus = true;
 
-      this.settingsFloorList.push(newFloorObject);
-
-      addFloorTimeStamp = new Date().toISOString().substr(0, 23);
-      console.log(addFloorTimeStamp);
+      this.settingsFloorList.unshift(newFloorObject);
     },
-    // 층 삭제
+    // 건물의 층 삭제
     removeFloor(floorId) {
       const idx = this.settingsFloorList.findIndex(function (item) {
         return item.floorId === floorId; //String
@@ -172,10 +160,10 @@ export default {
       await this.$store.dispatch("saveFloors");
 
       this.$store.commit("SET_BUILDINGLIST", null);
-      //다음에 마이페이지 갔을때 새로워진 건물 리스트 다시 받기 위함.
+      //마이페이지로 돌아갈 때 갱신된 빌딩 리스트를 다시 가져오기 위함
 
       this.$router.push("/Hanzari");
-      //새로 만들어진 건물의 자리배치도 조작 페이지로 이동
+      //마이페이지로 이동
     },
   },
 };

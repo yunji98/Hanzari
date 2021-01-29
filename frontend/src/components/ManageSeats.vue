@@ -20,6 +20,8 @@
               v-model="selectedNumberOfAddSeat"
               controls-type="updown"
               @change="changeSelectedNumberOfAddSeat"
+              @focus="onFocusInText"
+              @blur="outFocusInText"
               style="width: 300px"
             ></vue-numeric-input>
           </div>
@@ -40,7 +42,7 @@
       </v-row>
       <v-card-title>
         <h4>
-          {{ this.$t("contextMenuSeatSize") }}
+          {{ this.$t("textChangeAllSeatSize") }}
         </h4>
       </v-card-title>
       <v-row>
@@ -52,10 +54,12 @@
         <v-col cols="3" sm="2">
           <vue-numeric-input
             :min="1"
-            :max="100"
+            :max="1000"
             v-model="seatWidth"
             controls-type="updown"
             style="width: 250px; margin-left: -30px; top: 6px"
+            @focus="onFocusInText"
+            @blur="outFocusInText"
           ></vue-numeric-input>
         </v-col>
       </v-row>
@@ -73,10 +77,12 @@
         <v-col cols="3" sm="2">
           <vue-numeric-input
             :min="1"
-            :max="100"
+            :max="1000"
             v-model="seatHeight"
             controls-type="updown"
             style="width: 250px; margin-left: -33px; top: 5px"
+            @focus="onFocusInText"
+            @blur="outFocusInText"
           ></vue-numeric-input> </v-col
         ><v-col cols="12" sm="6">
           <v-btn
@@ -198,7 +204,7 @@
         <v-divider class="mx-4"></v-divider>
         <v-card-title>
           <h4>
-            {{ this.$t("contextMenuSeatSize") }}
+            {{ this.$t("textChangeSeatSize") }}
           </h4>
         </v-card-title>
         <v-row>
@@ -214,6 +220,8 @@
               v-model="seatDragWidth"
               controls-type="updown"
               style="width: 250px; margin-left: -30px; top: 6px"
+              @focus="onFocusInText"
+              @blur="outFocusInText"
             ></vue-numeric-input>
           </v-col>
         </v-row>
@@ -235,6 +243,8 @@
               v-model="seatDragHeight"
               controls-type="updown"
               style="width: 250px; margin-left: -33px; top: 5px"
+              @focus="onFocusInText"
+              @blur="outFocusInText"
             ></vue-numeric-input> </v-col
           ><v-col cols="12" sm="6">
             <v-btn
@@ -321,15 +331,25 @@
           <h4>{{ this.$t("textMemoToSeat") }}</h4></v-card-title
         >
         <v-row>
-          <v-col cols="12" sm="1"></v-col>
-          <v-col cols="12" sm="10">
+          <v-col cols="12" sm="9">
             <v-textarea
               solo
               name="input-7-4"
+              style="margin-left: 10px"
               :label="$t('textInMemoTextArea')"
+              v-model="memoComment"
+              @focus="onFocusInText"
+              @blur="outFocusInText"
             ></v-textarea>
           </v-col>
-          <v-col cols="12" sm="1"></v-col>
+          <v-col cols="12" sm="3"
+            ><v-btn
+              color="#2c4f91"
+              @click="writeMemo"
+              style="top: 4px; height: 36px; color: white; font-size: 12px"
+              >{{ this.$t("btnOk") }}</v-btn
+            ></v-col
+          >
         </v-row>
       </div>
     </v-card>
@@ -345,7 +365,7 @@ import axios from "axios";
 import { refreshToken } from "@/refreshToken.js";
 import "material-design-icons-iconfont/dist/material-design-icons.css";
 
-const HOST = "http://172.30.6.192:8080";
+const HOST = "http://172.30.6.192:8082";
 
 export default {
   name: "ManageSeats",
@@ -358,6 +378,11 @@ export default {
     "manageSeatTabOfSelectedSeatsComponentStatusToManageSeats",
     "seatDragWidthToManageSeats",
     "seatDragHeightToManageSeats",
+    "seatDragWidthListToManageSeats",
+    "seatDragHeightListToManageSeats",
+    "seatWidthToManageSeats",
+    "seatHeightToManageSeats",
+    "memoCommentToManageSeats",
   ],
   data() {
     return {
@@ -373,25 +398,31 @@ export default {
 
       addVacantSwitchStatus: false,
 
-      allFloorList: this.$store.state.getStore.allFloor,
+      allFloorList: null,
       currentSelectedFloorObject: null,
 
       numberOfAddSeatItems: [],
       selectedNumberOfAddSeat: null,
 
-      //자리 사이즈
-      seatWidth: 10,
-      seatHeight: 10,
-
       //드래그 자리 사이즈,
+      seatHeight: null,
+      seatWidth: null,
       seatDragHeight: null,
       seatDragWidth: null,
+      seatDragHeightList: null,
+      seatDragWidthList: null,
 
       //라디오 버튼 상태값
       viewSeatStatus: 0,
 
       // 자리 불투명도
       seatOpacity: 1,
+
+      // 텍스트 필드에 키보드 이벤트를 할 때 자리의 이벤트를 막기위함
+      textFocusStatus: false,
+
+      // 메모 내용
+      memoComment: null,
     };
   },
   watch: {
@@ -402,9 +433,7 @@ export default {
         console.log("allFloorListToManageSeats changed!");
         this.allFloorList = this.allFloorListToManageSeats;
         if (!this.currentSelectedFloorObject) {
-          this.currentSelectedFloorObject = this.allFloorList[
-            this.allFloorList.length - 1
-          ];
+          this.currentSelectedFloorObject = this.allFloorList[0];
         }
         this.initFloorItems();
       },
@@ -423,13 +452,32 @@ export default {
     // 만약 ManageSeats.vue에 들어오기 전에 자리 선택한 적이 있을때
     this.manageSeatTabOfSelectedSeatsComponentStatus = this.manageSeatTabOfSelectedSeatsComponentStatusToManageSeats;
 
+    this.seatHeight = this.seatHeightToManageSeats;
+    this.seatWidth = this.seatWidthToManageSeats;
+
     this.seatDragHeight = this.seatDragHeightToManageSeats;
     this.seatDragWidth = this.seatDragWidthToManageSeats;
+    console.log(this.seatDragWidth + "[AssignSeats]" + this.seatDragWidth);
+
+    this.seatDragHeightList = this.seatDragHeightListToManageSeats;
+    this.seatDragWidthList = this.seatDragWidthListToManageSeats;
+    console.log(
+      this.seatDragHeightList + "[AssignSeats List]" + this.seatDragWidthList
+    );
+
+    this.memoComment = this.memoCommentToManageSeats;
+
+    this.changeSeatSizeInformation();
+
     // DB에 이미 있을 때 + 층 데이터 건들지 않음
-    if (this.allFloorList && this.allFloorList.length) {
-      this.currentSelectedFloorObject = this.allFloorList[
-        this.allFloorList.length - 1
-      ];
+    if (
+      this.$store.state.getStore.allFloor &&
+      this.$store.state.getStore.allFloor.length
+    ) {
+      this.allFloorList = this.$store.state.getStore.allFloor.slice();
+      let tempList = this.allFloorList.slice();
+      this.allFloorList = tempList.reverse();
+      this.currentSelectedFloorObject = this.allFloorList[0];
     }
 
     // ManageSeats.vue 들어오기 전에 변화가 있을때(층 편집 관련)
@@ -452,6 +500,11 @@ export default {
         this.manageSeatTabOfSelectedSeatsComponentStatus = manageSeatTabOfSelectedSeatsComponentStatus;
       }
     );
+
+    eventBus.$on("pushMemoComment", (memoComment) => {
+      this.memoComment = memoComment;
+    });
+
     eventBus.$on(
       "pushMappingEmployeeComponentStatus",
       (mappingEmployeeComponentStatus) => {
@@ -460,20 +513,36 @@ export default {
     );
 
     eventBus.$on("sendDragSeatInformation", (objWidth, objHeight) => {
-      console.log(objWidth + "33333" + objHeight);
       this.seatDragWidth = objWidth;
       this.seatDragHeight = objHeight;
+      console.log(this.seatDragWidth + "[ManageSeats]" + this.seatDragHeight);
     });
 
     eventBus.$on("sendDragMultipleSeatList", (objWidthList, objHeightList) => {
-      console.log(objWidthList + "@@@@@@@" + objHeightList);
+      this.seatDragWidthList = objWidthList;
+      this.seatDragHeightList = objHeightList;
+      console.log(
+        this.seatDragWidthList + "[ManageSeats List]" + this.seatDragHeightList
+      );
+      this.changeSeatSizeInformation();
     });
   },
   beforeDestroy() {
     eventBus.$off("pushManageSeatTabOfSelectedSeatsComponentStatus");
+    eventBus.$off("pushMemoComment");
     eventBus.$off("pushMappingEmployeeComponentStatus");
+    eventBus.$off("sendDragSeatInformation");
+    eventBus.$off("sendDragMultipleSeatList");
   },
   methods: {
+    onFocusInText() {
+      this.textFocusStatus = true;
+      eventBus.$emit("pushFocusStatus", this.textFocusStatus);
+    },
+    outFocusInText() {
+      this.textFocusStatus = false;
+      eventBus.$emit("pushFocusStatus", this.textFocusStatus);
+    },
     initNumberOfAddSeatItems() {
       for (let i = 2; i < 100; i *= 2) {
         this.numberOfAddSeatItems.push(i);
@@ -546,14 +615,6 @@ export default {
 
           allFloor.push(newFloorObject);
         }
-
-        allFloor.sort(function (a, b) {
-          return a.floorOrder < b.floorOrder
-            ? -1
-            : a.floorOrder > b.floorOrder
-            ? 1
-            : 0;
-        });
 
         let buildingObject = {};
         buildingObject.buildingName = buildingList[i].buildingName;
@@ -730,13 +791,9 @@ export default {
       this.mappingEmployeeComponentStatus = true;
     },
     clickSeatSizeBtn() {
-      console.log(this.seatWidth);
-      console.log(this.seatHeight);
       eventBus.$emit("sendSeatSize", this.seatWidth, this.seatHeight);
     },
     clickDragSeatSizeBtn() {
-      console.log(this.seatDragWidth);
-      console.log(this.seatDragHeight);
       eventBus.$emit(
         "sendDragSeatSize",
         this.seatDragWidth,
@@ -750,7 +807,63 @@ export default {
       eventBus.$emit("pushSeatOpacity", this.seatOpacity);
     },
     clickDeleteAllSeatBtn() {
-      eventBus.$emit("pushDeleteAllSeatStatus", true);
+      let message = {
+        title: this.$i18n.t("titleConfirmDeleteAll"),
+        body: this.$i18n.t("confirmDeleteAll"),
+      };
+      let options = {
+        html: true,
+        okText: this.$i18n.t("btnConfirm"),
+        cancelText: this.$i18n.t("btnCancel"),
+      };
+      this.$dialog
+        .confirm(message, options)
+        .then((dialog) => {
+          eventBus.$emit("pushDeleteAllSeatStatus", true);
+        })
+        .catch(() => {
+          return;
+        });
+    },
+    changeSeatSizeInformation() {
+      if (this.seatDragHeightList && this.seatDragWidthList) {
+        let seatDragHeightSet = new Set(this.seatDragHeightList);
+        let seatDragWidthSet = new Set(this.seatDragWidthList);
+
+        //console.log(seatDragHeightSet);
+        //console.log(seatDragWidthSet);
+
+        if (seatDragHeightSet.size > 1) {
+          //console.log("height different");
+          this.seatDragHeight = null;
+        } else {
+          // console.log("height same");
+          this.seatDragHeight = this.seatDragHeightList[0];
+        }
+        if (seatDragWidthSet.size > 1) {
+          // console.log("width different");
+          this.seatDragWidth = null;
+        } else {
+          // console.log("width same");
+          this.seatDragWidth = this.seatDragWidthList[0];
+        }
+      }
+    },
+    writeMemo() {
+      if (this.memoComment === "") {
+        this.$notice.info({
+          title: this.$i18n.t("alertNoMemoComment"),
+          styles: {
+            width: "400px",
+            marginLeft: "-815px",
+            top: "118px",
+            backgroundColor: "#2a88bd",
+          },
+          duration: 5,
+        });
+        return;
+      }
+      eventBus.$emit("pushNewMemoComment", this.memoComment);
     },
   },
 };

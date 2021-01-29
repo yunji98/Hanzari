@@ -147,13 +147,11 @@
 
 <script>
 import axios from "axios";
-import { eventBus } from "../main";
 import { refreshToken } from "@/refreshToken.js";
-import i18n from "../plugins/i18n.js";
 
 import ProgressDialog from "@/components/ProgressDialog.vue";
 
-const HOST = "http://172.30.6.192:8080";
+const HOST = "http://172.30.6.192:8082";
 
 const Authority = {
   Viewer: "뷰어",

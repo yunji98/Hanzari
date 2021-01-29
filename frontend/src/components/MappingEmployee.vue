@@ -9,6 +9,8 @@
           :label="$t('textFieldLabelSearchSeat')"
           single-line
           hide-details
+          @focus="onFocusInText"
+          @blur="outFocusInText"
         ></v-text-field>
       </v-card-title>
       <v-data-table
@@ -67,9 +69,18 @@ export default {
         { text: this.$i18n.t("textNumber"), value: "number" },
         { text: "", value: "mappingEmployeeToVacantButton" },
       ],
+      textFocusStatus: false,
     };
   },
   methods: {
+    onFocusInText() {
+      this.textFocusStatus = true;
+      eventBus.$emit("pushFocusStatus", this.textFocusStatus);
+    },
+    outFocusInText() {
+      this.textFocusStatus = false;
+      eventBus.$emit("pushFocusStatus", this.textFocusStatus);
+    },
     clickEmployeeToMapping(clickedEmployee) {
       eventBus.$emit("mappingEmployeeToVacant", clickedEmployee);
     },

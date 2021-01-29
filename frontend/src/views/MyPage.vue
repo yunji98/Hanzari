@@ -97,13 +97,11 @@
 </template>
 
 <script>
-import axios from "axios";
 import { eventBus } from "../main";
 import ProgressDialog from "@/components/ProgressDialog.vue";
 import EditPassword from "@/components/EditPassword.vue";
 import AuthorizeEmployee from "@/components/AuthorizeEmployee.vue";
-import { refreshToken } from "../refreshToken.js";
-const HOST = "http://172.30.6.192:8080";
+
 export default {
   components: {
     ProgressDialog,

@@ -31,8 +31,13 @@
               :selectedFloorObjectToManageSeats="
                 selectedFloorObjectToManageSeats
               "
+              :seatWidthToManageSeats="seatWidth"
+              :seatHeightToManageSeats="seatHeight"
               :seatDragWidthToManageSeats="seatDragWidth"
               :seatDragHeightToManageSeats="seatDragHeight"
+              :seatDragWidthListToManageSeats="seatDragWidthList"
+              :seatDragHeightListToManageSeats="seatDragHeightList"
+              :memoCommentToManageSeats="memoCommentToManageSeats"
             ></component>
           </v-card-text>
         </v-card>
@@ -63,9 +68,15 @@ export default {
       allFloorListToManageSeats: null,
       selectedFloorObjectToManageSeats: null,
 
+      memoCommentToManageSeats: null,
+
       //드래그 자리 사이즈,
+      seatHeight: null,
+      seatWidth: null,
       seatDragHeight: null,
       seatDragWidth: null,
+      seatDragWidthList: null,
+      seatDragHeightList: null,
 
       items: [
         {
@@ -98,17 +109,22 @@ export default {
         if (manageSeatTabOfSelectedSeatsComponentStatus) {
           this.tab = 1;
         }
-        console.log(manageSeatTabOfSelectedSeatsComponentStatus);
+        if (manageSeatTabOfSelectedSeatsComponentStatus === false) {
+          this.seatHeight = null;
+          this.seatWidth = null;
+        }
       }
     );
+    //초기에 두번째 탭 선택 안했을때도 선택한 자리에 대해서 메모를 보여지게 하기 위함
+    eventBus.$on("pushMemoComment", (memoComment) => {
+      this.memoCommentToManageSeats = memoComment;
+    });
     //매핑된 사원 추가시 검색 탭으로 사원 맵 받기 위한 event
     eventBus.$on("pushEachEmployeeSeatMap", (eachEmployeeSeatMap) => {
       this.eachEmployeeSeatMapToManageSearch = eachEmployeeSeatMap;
     });
     //모든 층 객체를 가지고 있는 리스트를 받기 위한 event
     eventBus.$on("pushAllFloorList", (allFloorList) => {
-      console.log(this.allFloorListToManageSeats);
-      console.log(allFloorList);
       this.allFloorListToManageSeats = allFloorList;
     });
     //선택한 층에 대한 값 받아와서 층 전환하기 위한 event
@@ -117,17 +133,20 @@ export default {
     });
 
     eventBus.$on("sendDragSeatInformation", (objWidth, objHeight) => {
-      console.log(objWidth + "22222" + objHeight);
       this.seatDragWidth = objWidth;
       this.seatDragHeight = objHeight;
+      console.log(this.seatDragWidth + "[tabs]" + this.seatDragHeight);
     });
 
     eventBus.$on("sendDragMultipleSeatList", (objWidthList, objHeightList) => {
-      console.log(objWidthList + "!!!!!!!!!!!!" + objHeightList);
+      this.seatDragWidthList = objWidthList;
+      this.seatDragHeightList = objHeightList;
+      console.log(this.seatDragWidthList + "[tabs]" + this.seatDragHeightList);
     });
   },
   beforeDestroy() {
     eventBus.$off("pushManageSeatTabOfSelectedSeatsComponentStatus");
+    eventBus.$off("pushMemoComment");
     eventBus.$off("pushEachEmployeeSeatMap");
     eventBus.$off("pushAllFloorList");
     eventBus.$off("pushSelectedFloorObject");

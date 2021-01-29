@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-toolbar color="#2c4f91" dark> </v-toolbar>
+    <v-toolbar color="#2c4f91" dark :height="30"> </v-toolbar>
     <v-tabs
       v-model="tab"
       background-color="#2c4f91"

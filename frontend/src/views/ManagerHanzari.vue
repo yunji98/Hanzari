@@ -1,7 +1,7 @@
 <template>
   <v-app id="app">
     <div v-if="this.$store.state.getStore.otherFloorsSeatMap" class="parent">
-      <v-navigation-drawer v-model="leftDrawer" app :width="500">
+      <v-navigation-drawer v-model="leftDrawer" app :width="450">
         <ManagerTabs />
       </v-navigation-drawer>
 
@@ -23,9 +23,9 @@
           >keyboard_arrow_right</v-icon
         >
         <v-divider vertical></v-divider>
-
-        <v-toolbar-title>{{ $t("projectName") }}</v-toolbar-title>
-
+        <div class="mx-3">
+          <v-toolbar-title>{{ $t("projectName") }}</v-toolbar-title>
+        </div>
         <v-spacer></v-spacer>
 
         <v-btn text disabled id="custom-disabled">{{
@@ -84,7 +84,7 @@
           :width="450"
           :right="true"
         >
-          <v-toolbar color="#2c4f91" height="128" dark> </v-toolbar>
+          <v-toolbar color="#2c4f91" :height="95" dark> </v-toolbar>
           <FlowInformationTable />
           <DepartmentColorChips />
         </v-navigation-drawer>
@@ -105,7 +105,7 @@ import DepartmentColorChips from "@/components/DepartmentColorChips.vue";
 import ProgressDialog from "@/components/ProgressDialog.vue";
 import { refreshToken } from "../refreshToken.js";
 
-const HOST = "http://172.30.6.192:8080";
+const HOST = "http://172.30.6.192:8082";
 
 export default {
   name: "Hanzari",
@@ -235,7 +235,7 @@ export default {
           });
         if (errorStatus === 401) {
           await refreshToken();
-          console.log("!!!»õ·Î ¹ß±Þ ¹ÞÀº ÅäÅ« ÀÔ´Ï´Ù!!!");
+          console.log("!!!ï¿½ï¿½ï¿½ï¿½ ï¿½ß±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å« ï¿½Ô´Ï´ï¿½!!!");
           console.log(this.$store.state.userStore.token);
           response = await axios.get(
             HOST +
@@ -255,7 +255,7 @@ export default {
 
         let url = window.URL.createObjectURL(new Blob([response.data]));
         let link = document.createElement("a");
-        let contentDisposition = response.headers["content-disposition"]; // ÆÄÀÏ ÀÌ¸§ //cors
+        let contentDisposition = response.headers["content-disposition"]; // ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½ //cors
 
         let filename = null;
         if (contentDisposition) {
@@ -386,11 +386,11 @@ export default {
 
               for (let i = 0; i < response.data.failedList.length; i++) {
                 console.log(response.data.failedList);
-                //ÀúÀåÀ» ½ÇÆÐÇÑ ÀÚ¸®µéÀÇ °³¼ö°¡ ¿©·¯°³¶ó¸é failedObjectsList¸®½ºÆ®¿¡ pushÇÏ±â
+                //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ú¸ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ failedObjectsListï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ pushï¿½Ï±ï¿½
                 if (response.data.failedList.length > 1) {
                   failedObjectsList.push(response.data.failedList[i]);
                 }
-                //ÀúÀåÀ» ½ÇÆÐÇÑ ÀÚ¸®µéÀÇ °³¼ö°¡ 1°³¶ó¸é
+                //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ú¸ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 1ï¿½ï¿½ï¿½ï¿½ï¿½
                 else if (response.data.failedList.length === 1) {
                   errorMessage = this.getErrorMessageFromOneFailReason(
                     response.data.failedList[i]
@@ -398,7 +398,7 @@ export default {
                 }
               }
 
-              //failedObjectsListÀÇ pushµÈ °´Ã¼µéÀÌ ÀÖ´Ù¸é ±×¿¡ ¸Â´Â errorMessageÃßÃâÇÏ±â
+              //failedObjectsListï¿½ï¿½ pushï¿½ï¿½ ï¿½ï¿½Ã¼ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´Ù¸ï¿½ ï¿½×¿ï¿½ ï¿½Â´ï¿½ errorMessageï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½
               if (failedObjectsList.length > 0) {
                 errorMessage = this.getErrorMessageFromFailReasons(
                   failedObjectsList
@@ -429,12 +429,12 @@ export default {
           })
           .catch((error) => {
             errorStatus = error.response.status;
-            console.log("¿¡·¯ »óÅÂ" + errorStatus);
+            console.log("ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" + errorStatus);
           });
 
         if (errorStatus === 401) {
           await refreshToken();
-          console.log("!!!»õ·Î ¹ß±Þ ¹ÞÀº ÅäÅ« ÀÔ´Ï´Ù!!!");
+          console.log("!!!ï¿½ï¿½ï¿½ï¿½ ï¿½ß±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å« ï¿½Ô´Ï´ï¿½!!!");
           console.log(this.$store.state.userStore.token);
           await axios
             .post(
@@ -458,7 +458,7 @@ export default {
             })
             .catch((error) => {
               errorStatus = error.response.status;
-              console.log("¿¡·¯ »óÅÂ" + errorStatus);
+              console.log("ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" + errorStatus);
             });
         }
       } catch (error) {
@@ -467,8 +467,8 @@ export default {
     },
 
     async reloadData() {
-      // ¸®·Îµå ÇÒ ¶§ ÃþÀÌ ÇÑ°³µµ ¾ø´Ù¸é
-      // ¸®·Îµå ÀÌÈÄ¿¡µµ ÀÌÀüÀÇ ÃÖ½Å Ãþ, ´Ù¸¥ Ãþ °ü·Ã µ¥ÀÌÅÍµéÀÌ ³²¾ÆÀÖ´Ù.
+      // ï¿½ï¿½ï¿½Îµï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ù¸ï¿½
+      // ï¿½ï¿½ï¿½Îµï¿½ ï¿½ï¿½ï¿½Ä¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö½ï¿½ ï¿½ï¿½, ï¿½Ù¸ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Íµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ö´ï¿½.
       this.$store.state.getStore.latestFloorImage = null;
       this.$store.state.getStore.latestFloorSeatList = null;
 

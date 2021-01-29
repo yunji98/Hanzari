@@ -184,17 +184,15 @@
 
 <script>
 import { eventBus } from "../main.js";
-import axios from "axios";
-import { refreshToken } from "@/refreshToken.js";
 
-const HOST = "http://172.30.6.192:8080";
+const HOST = "http://172.30.6.192:8082";
 export default {
   name: "AssignSeats",
   data() {
     return {
       floorCanvas: null,
 
-      //ÁÜ
+      //ï¿½ï¿½
       zoom: 1,
       zoomStatus: false,
       lockStatus: false,
@@ -203,21 +201,21 @@ export default {
 
       viewSeatStatus: 0,
 
-      //ÆùÆ® »çÀÌÁî
+      //ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
       fontSize: 10,
 
-      // ÀÚ¸® Åõ¸íµµ
+      // ï¿½Ú¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
       seatOpacity: 1,
 
-      //Å°º¸µå ctrl
+      //Å°ï¿½ï¿½ï¿½ï¿½ ctrl
       ctrlKey: false,
 
-      //ÇöÀç Ãþ °´Ã¼
+      //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Ã¼
       currentSelectedFloorObject: null,
 
-      //DB·ÎºÎÅÍ ºÒ·¯¿Â List OR Map
-      allFloorList: this.$store.state.getStore.allFloor, // Ãþ °´Ã¼ ¸®½ºÆ®
-      allDepartmentObjectList: this.$store.state.getStore.allDepartment, // ºÎ¼­ °´Ã¼ ¸®½ºÆ®
+      //DBï¿½Îºï¿½ï¿½ï¿½ ï¿½Ò·ï¿½ï¿½ï¿½ List OR Map
+      allFloorList: this.$store.state.getStore.allFloor, // ï¿½ï¿½ ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½Æ®
+      allDepartmentObjectList: this.$store.state.getStore.allDepartment, // ï¿½Î¼ï¿½ ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½Æ®
 
       latestFloorImageFromDb: this.$store.state.getStore.latestFloorImage,
       otherFloorImageFromDb: this.$store.state.getStore.otherFloorsImageList,
@@ -225,13 +223,13 @@ export default {
       latestFloorSeatListFromDb: this.$store.state.getStore.latestFloorSeatList,
       otherFloorSeatListFromDb: this.$store.state.getStore.otherFloorsSeatMap,
 
-      //°¡°øµÇ¾î ÇÊ¿äÇÑ List OR Map
-      allImageMap: null, //¸ðµç ÀÌ¹ÌÁö ÀúÀå°ú ·ÎµåÇÒ ¼ö ÀÖ´Â Map <FloorId, ImgPath>
-      allDepartmentMap: null, //ºÎ¼­ÀÌ¸§, ºÎ¼­¾ÆÀÌµð, ºÎ¼­»ö»ó°ªÀ» ÀúÀåÇÒ ¼ö ÀÖ´Â Map <FloorId, DepartmentObject>
-      allSeatMap: null, //ÀÚ¸® Map <FloorId, ÀÚ¸®¸®½ºÆ®>
-      eachEmployeeSeatMap: null, //°¢ »ç¿øÀÇ ÀÚ¸® Map <EmployeeId, ÀÚ¸®¸®½ºÆ®>
+      //ï¿½ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ ï¿½Ê¿ï¿½ï¿½ï¿½ List OR Map
+      allImageMap: null, //ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½ Map <FloorId, ImgPath>
+      allDepartmentMap: null, //ï¿½Î¼ï¿½ï¿½Ì¸ï¿½, ï¿½Î¼ï¿½ï¿½ï¿½ï¿½Ìµï¿½, ï¿½Î¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½ Map <FloorId, DepartmentObject>
+      allSeatMap: null, //ï¿½Ú¸ï¿½ Map <FloorId, ï¿½Ú¸ï¿½ï¿½ï¿½ï¿½ï¿½Æ®>
+      eachEmployeeSeatMap: null, //ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ú¸ï¿½ Map <EmployeeId, ï¿½Ú¸ï¿½ï¿½ï¿½ï¿½ï¿½Æ®>
 
-      //Æ«ÆÁ
+      //Æ«ï¿½ï¿½
       toolTipStatus: false,
       toolTipXLocation: 100,
       toolTipYLocation: 100,
@@ -256,7 +254,7 @@ export default {
         { title: this.$i18n.t("contextMenuUploadCSV"), index: 1 },
       ],
 
-      //ÇöÀç »óÅÂ¸¦ ÀúÀåÇÏ±â À§ÇÑ »óÅÂ
+      //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Â¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
       saveStatus: null,
     };
   },
@@ -280,13 +278,13 @@ export default {
       ];
     }
 
-    //¼±ÅÃÇÑ Ãþ¿¡ ´ëÇÑ °ª ¹Þ¾Æ¿Í¼­ Ãþ ÀüÈ¯ÇÏ±â À§ÇÑ event
+    //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Þ¾Æ¿Í¼ï¿½ ï¿½ï¿½ ï¿½ï¿½È¯ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ event
     eventBus.$on("pushSelectedFloorObject", (floorObject) => {
       if (floorObject) {
         this.currentSelectedFloorObject = floorObject;
         this.changeFloor();
       } else {
-        //¸ðµç Ãþ »èÁ¦½Ã
+        //ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         this.currentSelectedFloorObject = null;
 
         this.floorCanvas.setBackgroundImage(
@@ -301,12 +299,12 @@ export default {
       }
     });
 
-    //°ø¼®¿¡ »ç¿øÀ» ¸ÅÇÎÇÏ°íÀÚ ÇÔ¼ö¸¦ È£ÃâÇÏ±â À§ÇÑ event
+    //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½ï¿½ï¿½ È£ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ event
     eventBus.$on("mappingEmployeeToVacant", (employeeObject) => {
       this.mappingEmployeeToVacant(employeeObject);
     });
 
-    //ÀÚ¸®ÀÇ »ç¿øÀ» Áö¿ì°í °ø¼®À¸·Î ¹Ù²Ù´Â ÇÔ¼ö¸¦ È£ÃâÇÏ±â À§ÇÑ event
+    //ï¿½Ú¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù²Ù´ï¿½ ï¿½Ô¼ï¿½ï¿½ï¿½ È£ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ event
     eventBus.$on("changeSeatToVacant", () => {
       if (this.floorCanvas.getActiveObject()) {
         this.changeSeatToVacant();
@@ -325,13 +323,13 @@ export default {
       }
     });
 
-    //¸ðµç Ãþ °´Ã¼¸¦ °¡Áö°í ÀÖ´Â ¸®½ºÆ®¸¦ ¹Þ±â À§ÇÑ event
+    //ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Þ±ï¿½ ï¿½ï¿½ï¿½ï¿½ event
     eventBus.$on("pushAllFloorList", (allFloorList) => {
       console.log(allFloorList);
       this.allFloorList = allFloorList;
     });
 
-    //¸ðµç Ãþ ÀÌ¹ÌÁö¸¦ °¡Áö°í ÀÖ´Â MapÀ» ¹Þ±â À§ÇÑ event
+    //ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ Mapï¿½ï¿½ ï¿½Þ±ï¿½ ï¿½ï¿½ï¿½ï¿½ event
     eventBus.$on("pushAllImageMap", (allImageMap) => {
       this.allImageMap = allImageMap;
       this.loadImageFile(
@@ -339,19 +337,19 @@ export default {
       );
     });
 
-    //ÀÚ¸® ÇÏÀÌ¶óÀÌÆ® ÇÏ´Â ÇÔ¼ö¸¦ È£ÃâÇÏ±â À§ÇÑ event
+    //ï¿½Ú¸ï¿½ ï¿½ï¿½ï¿½Ì¶ï¿½ï¿½ï¿½Æ® ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½ï¿½ï¿½ È£ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ event
     eventBus.$on("showSeatHighlight", (seatObject) => {
       this.showSeatHighlight(seatObject);
     });
 
-    //ÀÚ¸® ÇÏÀÌ¶óÀÌÆ® ÇÏ´Â ÇÔ¼ö¸¦ È£ÃâÇÏ±â À§ÇÑ event
+    //ï¿½Ú¸ï¿½ ï¿½ï¿½ï¿½Ì¶ï¿½ï¿½ï¿½Æ® ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½ï¿½ï¿½ È£ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ event
     eventBus.$on("showDepartmentSeatHighlight", (departmentObjectId) => {
       this.showDepartmentSeatHighlight(departmentObjectId);
     });
   },
   mounted() {
     this.initializing();
-    this.loadLatestFloor(); //ÃÖ½Å Ãþ ÀÌ¹ÌÁö¿Í ÀÚ¸® ·Îµå
+    this.loadLatestFloor(); //ï¿½Ö½ï¿½ ï¿½ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ú¸ï¿½ ï¿½Îµï¿½
   },
   beforeDestroy() {
     eventBus.$off("pushSelectedFloorObject");
@@ -368,7 +366,7 @@ export default {
   },
   methods: {
     initializing() {
-      //canvas, map »ý¼º
+      //canvas, map ï¿½ï¿½ï¿½ï¿½
       if (this.floorCanvas == null) {
         const ref = this.$refs.canvas;
         this.floorCanvas = new fabric.Canvas(ref, {
@@ -379,11 +377,11 @@ export default {
           enableRetinaScaling: false,
         });
 
-        this.setMouseWheel(); //¸¶¿ì½º ÈÙ°ú Ctrl Å°·Î zoom in/out
+        this.setMouseWheel(); //ï¿½ï¿½ï¿½ì½º ï¿½Ù°ï¿½ Ctrl Å°ï¿½ï¿½ zoom in/out
         this.addKeyEventListener();
-        this.ctrlKeyPressedForMultiSelection(); //ctrlÅ° ´©¸£°í µµÇü ¼±ÅÃ½Ã º¹¼ö¼±ÅÃ °¡´É
-        this.blockMultiObjectMovementAndScale(); // ¿©·¯°³ÀÇ ÀÚ¸® ¼±ÅÃÈÄ ÀÌµ¿ ¹× »çÀÌÁî Á¶Àý ¸·±â
-        this.whenResizingWindow(); //ºê¶ó¿ìÀú Ã¢ÀÇ Å©±â¸¦ Á¶ÀýÇÒ¶§ (Äµ¹ö½º È®Àå/Ãà¼ÒµÊ)
+        this.ctrlKeyPressedForMultiSelection(); //ctrlÅ° ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ã½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+        this.blockMultiObjectMovementAndScale(); // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ú¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+        this.whenResizingWindow(); //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¢ï¿½ï¿½ Å©ï¿½â¸¦ ï¿½ï¿½ï¿½ï¿½ï¿½Ò¶ï¿½ (Äµï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½/ï¿½ï¿½Òµï¿½)
       }
     },
     whenResizingWindow() {
@@ -502,7 +500,7 @@ export default {
       let multiSelectionObjectList = [];
       let activeSelection = null;
 
-      //selection:created(ÃÊ±â µµÇüÀÌ selectµÈ ½ÃÁ¡)ÀÇ µµÇü °´Ã¼¸¦ multiSelectionObjectList ¸®½ºÆ®¿¡ pushÇÏ±â
+      //selection:created(ï¿½Ê±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ selectï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ï¿½ï¿½ multiSelectionObjectList ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ pushï¿½Ï±ï¿½
       this.floorCanvas.on("selection:created", (event) => {
         console.log("selection:created");
         if (this.ctrlKey) {
@@ -514,7 +512,7 @@ export default {
         }
       });
 
-      //selection:updated(selectionÀÌ ¹Ù²î¾îÁø ½ÃÁ¡)ÀÇ µµÇü °´Ã¼¸¦ multiSelectionObjectList ¸®½ºÆ®¿¡ pushÇÏ±â
+      //selection:updated(selectionï¿½ï¿½ ï¿½Ù²ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ï¿½ï¿½ multiSelectionObjectList ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ pushï¿½Ï±ï¿½
       this.floorCanvas.on("selection:updated", (event) => {
         console.log("selection:updated");
         if (this.ctrlKey) {
@@ -526,14 +524,14 @@ export default {
 
           console.log(multiSelectionObjectList.length);
           if (multiSelectionObjectList.length > 0) {
-            //selected:cleared(selectionµÈ µµÇü °´Ã¼ ¸ðµÎ selection RESET) ÀÌº¥Æ® ÀÚµ¿ È£Ãâ
+            //selected:cleared(selectionï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ selection RESET) ï¿½Ìºï¿½Æ® ï¿½Úµï¿½ È£ï¿½ï¿½
             this.floorCanvas.discardActiveObject();
           }
         }
       });
 
-      //this.floorCanvas.discardActiveObject()°¡ È£ÃâµÇ¸é ÀÚµ¿À¸·Î selection:cleared(selectµÈ µµÇüÀÌ ¾ø´Â ½ÃÁ¡) ÀÌº¥Æ® ÇÔ¼ö°¡ È£ÃâµÊ
-      //°ü¸®ÇÏ°íÀÖ´Â multiSelectionObjectList¸®½ºÆ®¸¦ multiSelectionÀ¸·Î È­¸é¿¡ Ç¥ÃâÇÏ±â
+      //this.floorCanvas.discardActiveObject()ï¿½ï¿½ È£ï¿½ï¿½Ç¸ï¿½ ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½ selection:cleared(selectï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½) ï¿½Ìºï¿½Æ® ï¿½Ô¼ï¿½ï¿½ï¿½ È£ï¿½ï¿½ï¿½
+      //ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ï¿½Ö´ï¿½ multiSelectionObjectListï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ multiSelectionï¿½ï¿½ï¿½ï¿½ È­ï¿½é¿¡ Ç¥ï¿½ï¿½ï¿½Ï±ï¿½
       this.floorCanvas.on("selection:cleared", (event) => {
         console.log("selection:cleared");
         if (this.ctrlKey) {
@@ -550,7 +548,7 @@ export default {
         }
       });
 
-      //selectµÈ µµÇüÀÌ ¾øÀ»½Ã °ü¸®ÇÏ°íÀÖ´ø ¹è¿­°ú ActiveSelection°´Ã¼ ÃÊ±âÈ­ÇÏ°í, selection ÃÊ±âÈ­ÇÏ±â
+      //selectï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ï¿½Ö´ï¿½ ï¿½è¿­ï¿½ï¿½ ActiveSelectionï¿½ï¿½Ã¼ ï¿½Ê±ï¿½È­ï¿½Ï°ï¿½, selection ï¿½Ê±ï¿½È­ï¿½Ï±ï¿½
       this.floorCanvas.on("mouse:down", (event) => {
         if (event.button === 1) {
           if (event.target) {
@@ -580,7 +578,7 @@ export default {
       });
     },
     addKeyEventListener() {
-      //ctrlÅ°°¡ down/upµÉ¶§ ctrlKey º¯¼ö ¾Ë¸Â°Ô º¯È¯ÇÏ±â
+      //ctrlÅ°ï¿½ï¿½ down/upï¿½É¶ï¿½ ctrlKey ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¸Â°ï¿½ ï¿½ï¿½È¯ï¿½Ï±ï¿½
       document.addEventListener("keydown", this.watchCtrlKeyDown);
       document.addEventListener("keydown", this.manageKeyboard);
       document.addEventListener("keyup", this.watchCtrlKeyUp);
@@ -606,7 +604,7 @@ export default {
       if (this.ctrlKey) {
         switch (key) {
           case 65:
-            //browserÀÇ ÄÜÅÙÃ÷ ÀüÃ¼¼±ÅÃ block
+            //browserï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ï¿½ï¿½ï¿½ï¿½ block
             event.preventDefault();
             event.stopPropagation();
             this.selectAllSeat();
@@ -657,7 +655,7 @@ export default {
               .imgPath
           );
         }
-        //ÇöÀç Ãþ¿¡ ±×¸° µµÇüµéÀÌ ÀÖ´Ù¸é
+        //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½×¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´Ù¸ï¿½
         if (eachfloorSeatList) {
           for (let i = 0; i < eachfloorSeatList.length; i++) {
             this.floorCanvas.add(eachfloorSeatList[i]);
@@ -667,7 +665,7 @@ export default {
       } else if (
         this.allImageMap.get(this.currentSelectedFloorObject.floorId) == null
       ) {
-        //ÇöÀç ÃþÀÇ ÀÌ¹ÌÁö°¡ ÀúÀåµÇ¾îÀÖÁö ¾Ê´Ù¸é È­¸é¿¡ ±×·ÁÁ®ÀÖ´ø ÀÌ¹ÌÁö¿Í µµÇü ÃÊ±âÈ­
+        //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Ù¸ï¿½ È­ï¿½é¿¡ ï¿½×·ï¿½ï¿½ï¿½ï¿½Ö´ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­
         this.floorCanvas
           .getObjects()
           .slice()
@@ -719,7 +717,7 @@ export default {
         { crossOrigin: "Anonymous" }
       );
     },
-    //Åõ¸íµµ Á¶Àý
+    //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     changeSeatOpacity() {
       let eachFloorSeatList = this.getEachFloorSeatList(
         this.currentSelectedFloorObject.floorId
@@ -731,20 +729,20 @@ export default {
       }
       this.floorCanvas.renderAll();
     },
-    //°¢ ÃþÀÇ µµÇü ¸®½ºÆ® ¹ÝÈ¯ÇÏ±â
+    //ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½È¯ï¿½Ï±ï¿½
     getEachFloorSeatList: function (floor) {
       if (!floor) {
-        // ÃÊ¹Ý¿¡ ÃþÀÌ »ý¼º ¾ÈµÇ¾úÀ»¶§
+        // ï¿½Ê¹Ý¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ÈµÇ¾ï¿½ï¿½ï¿½ï¿½ï¿½
         return;
       }
-      //Ãþ¿¡ ÇØ´çÇÏ´Â µµÇü¸®½ºÆ®°¡ ¸¸µé¾îÁöÁö ¾Ê¾ÒÀ»¶§ °¢ ÃþÀÇ µµÇü ¸®½ºÆ® »ý¼ºÇÏ±â
+      //ï¿½ï¿½ï¿½ï¿½ ï¿½Ø´ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½
       if (!this.allSeatMap.get(floor)) {
         let newSeatsList = [];
         this.allSeatMap.set(floor, newSeatsList);
-        //console.log(this.allSeatMap.size + "allSeatMap Ã³À½ÀÇ ÀÚ¸® ¸Ê »çÀÌÁîÀÔ´Ï´Ù");
+        //console.log(this.allSeatMap.size + "allSeatMap Ã³ï¿½ï¿½ï¿½ï¿½ ï¿½Ú¸ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½");
         return this.allSeatMap.get(floor);
       } else {
-        //console.log(this.allSeatMap.size + "allSeatMap ÇöÀç ÀÚ¸® ¸Ê »çÀÌÁîÀÔ´Ï´Ù" );
+        //console.log(this.allSeatMap.size + "allSeatMap ï¿½ï¿½ï¿½ï¿½ ï¿½Ú¸ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½" );
         return this.allSeatMap.get(floor);
       }
     },
@@ -766,9 +764,9 @@ export default {
         return this.allDepartmentMap.get(floorId);
       }
     },
-    //»ç¿øÀÇ ÀÚ¸®¸®½ºÆ®¿¡¼­ »èÁ¦µÈ ÀÚ¸®¸¦ »èÁ¦ÇÏ±â
+    //ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ú¸ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ú¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½
     deleteEachEmployeeSeatList: function (groupToObject) {
-      //¸ÅÇÎµÈ ÀÚ¸®ÀÏ¶§
+      //ï¿½ï¿½ï¿½Îµï¿½ ï¿½Ú¸ï¿½ï¿½Ï¶ï¿½
       if (groupToObject.employeeId != null) {
         let oneEmployeeSeatList = this.getEachEmployeeSeatList(
           groupToObject.employeeId
@@ -781,7 +779,7 @@ export default {
             }
           }
         }
-        //±× »ç¿øÀÇ ÀÚ¸®°¡ ¾ø¾îÁö¸é »ç¿øÀÚ¸® ¸Ê¿¡¼­ »èÁ¦ÇÏ±â À§ÇÔ.
+        //ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ú¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ú¸ï¿½ ï¿½Ê¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½.
         let eachEmployeeSeat = this.eachEmployeeSeatMap.get(
           groupToObject.employeeId
         );
@@ -809,12 +807,12 @@ export default {
         return Colors.vacantColor;
       }
     },
-    //»õ·Î¿î department°´Ã¼¸¦ ¹ÝÈ¯
+    //ï¿½ï¿½ï¿½Î¿ï¿½ departmentï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½ï¿½È¯
     getNewDepartmentObject(departmentId, departmentName, departmentColor) {
       let newDepartmentObject = {};
-      newDepartmentObject.departmentId = departmentId; //ºÎ¼­ ¾ÆÀÌµð·Î º¯°æ¿¹Á¤
-      newDepartmentObject.departmentName = departmentName; //ºÎ¼­ ÀÌ¸§
-      newDepartmentObject.departmentColor = departmentColor; //ºÎ¼­ »ö»ó
+      newDepartmentObject.departmentId = departmentId; //ï¿½Î¼ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ï¿½ ï¿½ï¿½ï¿½æ¿¹ï¿½ï¿½
+      newDepartmentObject.departmentName = departmentName; //ï¿½Î¼ï¿½ ï¿½Ì¸ï¿½
+      newDepartmentObject.departmentColor = departmentColor; //ï¿½Î¼ï¿½ ï¿½ï¿½ï¿½ï¿½
       return newDepartmentObject;
     },
     hexGenerator() {
@@ -833,14 +831,14 @@ export default {
 
       return hexValue.join("");
     },
-    //this.allDepartmentMap¿¡¼­ ºÎ¼­»ö»ó Ã£¾Æ ¹ÝÈ¯ÇÏ±â, ¾ø´Ù¸é
-    //db¿¡ ºÎ¼­»öÀÌ nullÀÎ °ÍÀº ·£´ýÄÃ·¯·Î ¹ÝÈ¯ÇÏ±â (ÀÓ½Ã ¹æ¹ý)
+    //this.allDepartmentMapï¿½ï¿½ï¿½ï¿½ ï¿½Î¼ï¿½ï¿½ï¿½ï¿½ï¿½ Ã£ï¿½ï¿½ ï¿½ï¿½È¯ï¿½Ï±ï¿½, ï¿½ï¿½ï¿½Ù¸ï¿½
+    //dbï¿½ï¿½ ï¿½Î¼ï¿½ï¿½ï¿½ï¿½ï¿½ nullï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½È¯ï¿½Ï±ï¿½ (ï¿½Ó½ï¿½ ï¿½ï¿½ï¿½)
     getDepartmentObjectColor(employeeObject) {
       let departmentColor = null;
       let allFloorDepartmentObjectIndex = 0;
       let eachFloorDepartmentObjectList = this.getEachDepartmentObjectList(
         this.currentSelectedFloorObject.floorId
-      ); //Ãþ ¾ÆÀÌµð·Î Ã£Àº ÇöÀçÃþÀÇ ºÎ¼­°´Ã¼¸®½ºÆ®
+      ); //ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ï¿½ Ã£ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Î¼ï¿½ï¿½ï¿½Ã¼ï¿½ï¿½ï¿½ï¿½Æ®
       let foundDepartmentObjectList = null;
 
       for (let i = 0; i < this.allDepartmentMap.size; i++) {
@@ -861,8 +859,8 @@ export default {
         }
       }
 
-      //allDepartmentMap¿¡ ÇØ´ç ºÎ¼­ÀÇ ºÎ¼­»öÀÌ ÀúÀåÀÌ µÇ¾îÀÖ´Â°Ô ÇÏ³ª¶óµµ ÀÖÀ¸¸é
-      //±× ºÎ¼­ÀÇ ºÎ¼­»öÀ» Ã£´Â´Ù.
+      //allDepartmentMapï¿½ï¿½ ï¿½Ø´ï¿½ ï¿½Î¼ï¿½ï¿½ï¿½ ï¿½Î¼ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½Ö´Â°ï¿½ ï¿½Ï³ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+      //ï¿½ï¿½ ï¿½Î¼ï¿½ï¿½ï¿½ ï¿½Î¼ï¿½ï¿½ï¿½ï¿½ï¿½ Ã£ï¿½Â´ï¿½.
       if (allFloorDepartmentObjectIndex > -1) {
         let currentFloorDepartmentObjectIndex = eachFloorDepartmentObjectList.findIndex(
           function (departmentObject) {
@@ -890,10 +888,10 @@ export default {
         }
         return departmentColor;
       }
-      //allDepartmentMap¿¡ ÇØ´ç ºÎ¼­ÀÇ ºÎ¼­»öÀÌ ÀúÀåÀÌ µÇ¾îÀÖ´Â°Ô ÇÏ³ª¶óµµ ¾øÀ¸¸é
+      //allDepartmentMapï¿½ï¿½ ï¿½Ø´ï¿½ ï¿½Î¼ï¿½ï¿½ï¿½ ï¿½Î¼ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½Ö´Â°ï¿½ ï¿½Ï³ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
       else {
-        //db·ÎºÎÅÍ ¹Þ¾Æ¿Â ºÎ¼­ °´Ã¼ ¸®½ºÆ®¿¡¼­ ±× ºÎ¼­ÀÇ ºÎ¼­»öÀÌ nullÀÌ ¾Æ´Ï°í °ªÀÌ ÀúÀåµÇÀÖ´Ù¸é ±×°ÍÀ» Ã£´Â´Ù.
-        //nullÀÌ¶ó¸é ·£´ý°ªÀ» ÁØ´Ù. (ÀÓ½Ã¹æ¹ý)
+        //dbï¿½Îºï¿½ï¿½ï¿½ ï¿½Þ¾Æ¿ï¿½ ï¿½Î¼ï¿½ ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Î¼ï¿½ï¿½ï¿½ ï¿½Î¼ï¿½ï¿½ï¿½ï¿½ï¿½ nullï¿½ï¿½ ï¿½Æ´Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö´Ù¸ï¿½ ï¿½×°ï¿½ï¿½ï¿½ Ã£ï¿½Â´ï¿½.
+        //nullï¿½Ì¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ø´ï¿½. (ï¿½Ó½Ã¹ï¿½ï¿½)
         for (let j = 0; j < this.allDepartmentObjectList.length; j++) {
           if (
             this.allDepartmentObjectList[j].departmentId ===
@@ -968,15 +966,15 @@ export default {
       }
     },
     deleteDepartmentObjectFromList(listToFind, listToDelete, departmentId) {
-      //ÀÚ¸® ÇÏ³ª¸¦ »èÁ¦ ÈÄ ÇöÀç Ãþ ÀÚ¸®¸®½ºÆ®¿¡¼­ ÇØ´ç ÀÚ¸®¿¡ ¸ÅÇÎµÇ¾îÀÖ´ø »ç¿øÀÇ ºÎ¼­¸¦ °Ë»öÇÏ¿©
+      //ï¿½Ú¸ï¿½ ï¿½Ï³ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ú¸ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½Ø´ï¿½ ï¿½Ú¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ÎµÇ¾ï¿½ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Î¼ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ï¿½Ï¿ï¿½
       const idx = listToFind.findIndex((seatObject) => {
         return seatObject.employeeDepartmentId === departmentId;
       });
 
-      //°Ë»öÇÏ¿© index°¡ ¾ø´Ù¸é
-      //(Áï, ÇöÀç Ãþ ÀÚ¸®¸®½ºÆ®¿¡¼­ »èÁ¦ÇÑ ÀÚ¸®¿¡ ¸ÅÇÎµÇ¾îÀÖ´ø »ç¿øÀÇ ºÎ¼­¿Í °°Àº ºÎ¼­°¡ ÀÖÁö¾Ê´Ù¸é ÇöÀç Ãþ¿¡ ±× ºÎ¼­´Â ¾ø´Ù´Â ¶æÀ¸·Î
-      //ÇöÀç ÃþÀÇ ºÎ¼­¸Ê eachFloorDepartmentObjectList¿¡¼­ ±× ºÎ¼­ °´Ã¼¸¦ Áö¿ì°í,
-      //DepartmentColorChipsÄÄÆ÷³ÍÆ®¿¡°Ô ¹Ù²ï allDepartmentMapÀ» ¾Ë·ÁÁØ´Ù.)
+      //ï¿½Ë»ï¿½ï¿½Ï¿ï¿½ indexï¿½ï¿½ ï¿½ï¿½ï¿½Ù¸ï¿½
+      //(ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ú¸ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ú¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ÎµÇ¾ï¿½ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Î¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Î¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ê´Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Î¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ù´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+      //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Î¼ï¿½ï¿½ï¿½ eachFloorDepartmentObjectListï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Î¼ï¿½ ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½,
+      //DepartmentColorChipsï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½Ù²ï¿½ allDepartmentMapï¿½ï¿½ ï¿½Ë·ï¿½ï¿½Ø´ï¿½.)
       //console.log(idx);
       if (idx < 0) {
         for (let i = 0; i < listToDelete.length; i++) {
@@ -988,7 +986,7 @@ export default {
         eventBus.$emit("pushDepartmentMap", this.allDepartmentMap);
       }
     },
-    //°ø¼® ÀÚ¸®¿¡ »ç¿ø ¸ÅÇÎÇÏ´Â ÇÔ¼ö
+    //ï¿½ï¿½ï¿½ï¿½ ï¿½Ú¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½
     mappingEmployeeToVacant(employeeObject) {
       let eachEmployeeSeatList = this.getEachEmployeeSeatList(
         employeeObject.employeeId
@@ -1045,7 +1043,7 @@ export default {
         this.mappingEmployee(employeeObject);
       }
     },
-    //ÀÚ¸®¿¡ »ç¿øÀ» ¸ÅÇÎÇÏ´Â ÇÔ¼ö
+    //ï¿½Ú¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½
     mappingEmployee(employeeObject) {
       let eachEmployeeSeatList = this.getEachEmployeeSeatList(
         employeeObject.employeeId
@@ -1060,7 +1058,7 @@ export default {
       this.floorCanvas.getActiveObjects().forEach((obj) => {
         let beforeChangedDepartmentId = null;
         if (obj.employeeId && obj.employeeId != employeeObject.employeeId) {
-          // ´Ù¸¥ »ç¿øÀÌ ¸ÅÇÎµÈ ÀÚ¸®
+          // ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Îµï¿½ ï¿½Ú¸ï¿½
           let groupToObject = obj.toObject([
             "seatId",
             "employeeId",
@@ -1069,7 +1067,7 @@ export default {
           beforeChangedDepartmentId = groupToObject.employeeDepartmentId;
           this.deleteEachEmployeeSeatList(groupToObject);
         }
-        // ´Ù¸¥ »ç¿øÀÌ ¸ÅÇÎµÈ ÀÚ¸® ¶Ç´Â °ø¼®
+        // ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Îµï¿½ ï¿½Ú¸ï¿½ ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½
         obj.employeeName = employeeObject.name;
         obj.employeeDepartment = employeeObject.department;
         obj.employeeDepartmentId = employeeObject.departmentId;
@@ -1107,7 +1105,7 @@ export default {
       eventBus.$emit("pushAllSeatMap", this.allSeatMap);
       eventBus.$emit("pushEachEmployeeSeatMap", this.eachEmployeeSeatMap);
     },
-    //»ç¿øÀÌ ¸ÅÇÎµÈ ÀÚ¸®¸¦ °ø¼®À¸·Î ¸¸µå´Â ÇÔ¼ö
+    //ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Îµï¿½ ï¿½Ú¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
     changeSeatToVacant() {
       let eachFloorSeatList = this.getEachFloorSeatList(
         this.currentSelectedFloorObject.floorId
@@ -1115,7 +1113,7 @@ export default {
 
       let eachFloorDepartmentObjectList = this.getEachDepartmentObjectList(
         this.currentSelectedFloorObject.floorId
-      ); //Ãþ ¾ÆÀÌµð·Î Ã£Àº ºÎ¼­°´Ã¼ ¸®½ºÆ®
+      ); //ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ï¿½ Ã£ï¿½ï¿½ ï¿½Î¼ï¿½ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½Æ®
 
       let alreadyEmptySeat = 0;
       let activeObject = 0;
@@ -1210,7 +1208,7 @@ export default {
         ) {
           return;
         } else {
-          //ÀÌÀü¿¡ active µÈ ÀÚ¸® ÇØÁ¦ÇÏ±â => ´Ù½Ã active ÀÚ¸®µé·Î ¹­±â À§ÇÔ
+          //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ active ï¿½ï¿½ ï¿½Ú¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½ => ï¿½Ù½ï¿½ active ï¿½Ú¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
           this.floorCanvas.discardActiveObject();
         }
       }
@@ -1308,14 +1306,14 @@ export default {
 
       this.toolTipStatus = true;
     },
-    //ÀÚ¸® ÇÏÀÌ¶óÀÌÆ®
+    //ï¿½Ú¸ï¿½ ï¿½ï¿½ï¿½Ì¶ï¿½ï¿½ï¿½Æ®
     showSeatHighlight(seatObject) {
       let seatFloor = null;
-      //seatÀÇ Ãþ°ú ÇöÀçÃþÀÌ °°Áö ¾Ê´Ù¸é
+      //seatï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Ù¸ï¿½
       if (this.currentSelectedFloorObject.floorId != seatObject.floorId) {
         seatFloor = seatObject.floorId;
       }
-      //seatÀÇ Ãþ°ú ÇöÀçÃþÀÌ °°´Ù¸é
+      //seatï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ù¸ï¿½
       else {
         seatFloor = this.currentSelectedFloorObject.floorId;
       }
@@ -1341,8 +1339,8 @@ export default {
               this.floorCanvas.remove(obj);
             });
 
-          //°¢ ÃþÀÇ ÀúÀåµÈ µµÇü ¸®½ºÆ® È­¸é¿¡ »Ñ·ÁÁÖ±â
-          //ÇöÀç ÃþÀÇ ÀÌ¹ÌÁö°¡ ÀúÀåµÇ¾îÀÖ´Ù¸é
+          //ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® È­ï¿½é¿¡ ï¿½Ñ·ï¿½ï¿½Ö±ï¿½
+          //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ï¿½Ö´Ù¸ï¿½
           if (this.allImageMap.get(seatFloor) != null) {
             let typeCheck = this.allImageMap.get(
               this.currentSelectedFloorObject.floorId
@@ -1382,7 +1380,7 @@ export default {
             group.employeeNumber
           );
 
-          //3ÃÊ µÚ ÅøÆÁ ¾ø¾îÁü
+          //3ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
           setTimeout(() => {
             this.toolTipStatus = false;
           }, 3000);
@@ -1413,10 +1411,10 @@ export default {
             group.item(0).set("strokeWidth", null);
           }
         }
-        //ÀÚ¸®°¡ ¾ÆÁ÷ ¾øÀ»¶§ ¿¹¿ÜÃ³¸® ÇÏ±â
+        //ï¿½Ú¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã³ï¿½ï¿½ ï¿½Ï±ï¿½
       }
     },
-    //ÇØ´ç ºÎ¼­º° ÀÚ¸® ÇÏÀÌ¶óÀÌÆ®
+    //ï¿½Ø´ï¿½ ï¿½Î¼ï¿½ï¿½ï¿½ ï¿½Ú¸ï¿½ ï¿½ï¿½ï¿½Ì¶ï¿½ï¿½ï¿½Æ®
     showDepartmentSeatHighlight(departmentObjectId) {
       let eachFloorSeatList = this.getEachFloorSeatList(
         this.currentSelectedFloorObject.floorId
@@ -1446,7 +1444,7 @@ export default {
       });
     },
     clickExportToCSVBtn() {
-      //csv ³»·Á¹Þ±â(seatName, employeeId, floorId)
+      //csv ï¿½ï¿½ï¿½ï¿½ï¿½Þ±ï¿½(seatName, employeeId, floorId)
       let floorId = this.currentSelectedFloorObject.floorId;
       this.$emit("downloadCSVFile", floorId);
     },
@@ -1476,7 +1474,7 @@ export default {
         });
     },
     saveFromCSVFileToDB(csvFile) {
-      //csv ¼öÁ¤ÇßÀ»½Ã¿¡ db·Î Á¤º¸ saveÇÏ±â
+      //csv ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã¿ï¿½ dbï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ saveï¿½Ï±ï¿½
       let newFileForCSVType = new File([csvFile], csvFile.name, {
         type: "text/csv",
       });
@@ -1603,23 +1601,23 @@ export default {
     },
     async saveData() {
       if (this.allFloorList) {
-        //db·Î º¸³¾ ÀÚ¸® »èÁ¦
+        //dbï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ú¸ï¿½ ï¿½ï¿½ï¿½ï¿½
         if (this.$store.state.deleteStore.deleteSeatIdList.length > 0) {
           console.log(this.$store.state.deleteStore.deleteSeatIdList);
           await this.$store.dispatch("deleteSeatWithKey");
         }
 
-        //db·Î º¸³¾ Ãþ »èÁ¦
+        //dbï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         if (this.$store.state.deleteStore.deleteFloorIdList.length) {
           console.log(this.$store.state.deleteStore.deleteFloorIdList);
           await this.$store.dispatch("deleteFloorWithKey");
         }
 
-        //Ãþ ÀúÀå
+        //ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         await this.$store.dispatch("pushFloors", this.allFloorList);
         await this.$store.dispatch("saveFloors");
 
-        //ÀÚ¸® ÀúÀå
+        //ï¿½Ú¸ï¿½ ï¿½ï¿½ï¿½ï¿½
         for (let i = 0; i < this.allFloorList.length; i++) {
           let eachFloorSeatList = this.getEachFloorSeatList(
             this.allFloorList[i].floorId
@@ -1669,7 +1667,7 @@ export default {
 
         await this.$store.dispatch("saveSeats");
 
-        //ºÎ¼­ »ö ÀúÀå(»õ·Î¿î ºÎ¼­ÀÇ »ç¿øÀÌ ¸ÅÇÎµÇ°í ÀúÀåµÇ¾úÀ» °æ¿ì¿¡¸¸ ºÎ¼­°´Ã¼¸¦ ÀúÀåÇÑ´Ù.)
+        //ï¿½Î¼ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½Î¿ï¿½ ï¿½Î¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ÎµÇ°ï¿½ ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ï¿½ï¿½ ï¿½ï¿½ì¿¡ï¿½ï¿½ ï¿½Î¼ï¿½ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.)
         if (this.allDepartmentMap) {
           //console.log(this.allDepartmentObjectList);
           let departmentObjectToSaveList = [];
@@ -1707,10 +1705,10 @@ export default {
           }
         }
 
-        //ÀÌ¹ÌÁö ÀúÀå
+        //ï¿½Ì¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         for (let i = 0; i < this.allFloorList.length; i++) {
           let floorId = this.allFloorList[i].floorId;
-          // Ãþ¿¡ ÀÌ¹ÌÁö°¡ ÀÖ´Ù¸é
+          // ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´Ù¸ï¿½
           if (this.allImageMap.get(floorId) != null) {
             let file = this.allImageMap.get(floorId).imgPath;
             if (typeof file === "string") {
@@ -1732,7 +1730,7 @@ export default {
 
         this.saveStatus = "done";
 
-        //1ÃÊ µÚ µ¥ÀÌÅÍ ¸®·Îµå
+        //1ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Îµï¿½
         setTimeout(() => {
           this.$emit("reloadData");
         }, 1000);
@@ -1762,10 +1760,10 @@ export default {
           //console.log("cancel");
         });
     },
-    // seat tableÀÇ employeeId¸¦ ¹ÞÀ¸¸é ±×¿¡ ¸Â´Â Á¤º¸ ¾Ë¾Æ¿À±â À§ÇÔ
+    // seat tableï¿½ï¿½ employeeIdï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½×¿ï¿½ ï¿½Â´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¾Æ¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     getEmployeeObject(employeeId) {
       let employeeInfoList = [];
-      let employeeObject = {}; // return µÉ Object
+      let employeeObject = {}; // return ï¿½ï¿½ Object
       let employeeList = this.$store.state.getStore.allEmployee;
 
       for (let i = 0; i < employeeList.length; i++) {
@@ -1780,7 +1778,7 @@ export default {
       }
 
       if (employeeId == null) {
-        // °ø¼®
+        // ï¿½ï¿½ï¿½ï¿½
         let employee = {};
         employee.name = null;
         employee.department = null;
@@ -1788,7 +1786,7 @@ export default {
 
         employeeObject = employee;
       } else {
-        // ¸ÅÇÎµÈ ÀÚ¸®
+        // ï¿½ï¿½ï¿½Îµï¿½ ï¿½Ú¸ï¿½
         for (let i = 0; i < employeeInfoList.length; i++) {
           if (employeeId === employeeInfoList[i].employeeId) {
             //String
@@ -1796,15 +1794,15 @@ export default {
           }
         }
       }
-      return employeeObject; // return ¹Þ¾Æ¼­ department, name, number »Ì¾Æ¾²±â
+      return employeeObject; // return ï¿½Þ¾Æ¼ï¿½ department, name, number ï¿½Ì¾Æ¾ï¿½ï¿½ï¿½
     },
-    //ºÎ¼­ ¾ÆÀÌµð·Î ÇØ´ç ºÎ¼­ÀÇ »ö»ó ¸®ÅÏÇÏ±â
-    //DB¿¡ ÀúÀåµÇ¾îÀÖ´Â ºÎ¼­»ö»óÀÌ ÀÌ¶ó¸é ±×°ÍÀ» ¹ÝÈ¯ÇÏ°í
-    //ÀúÀåµÇ¾îÀÖÁö ¾Ê°í color°ªÀÌ nullÀÎ°ÍÀº ·£´ýÄÃ·¯¸¦ ¹ÝÈ¯ÇÑ´Ù.
+    //ï¿½Î¼ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ï¿½ ï¿½Ø´ï¿½ ï¿½Î¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½
+    //DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ï¿½Ö´ï¿½ ï¿½Î¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¶ï¿½ï¿½ ï¿½×°ï¿½ï¿½ï¿½ ï¿½ï¿½È¯ï¿½Ï°ï¿½
+    //ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê°ï¿½ colorï¿½ï¿½ï¿½ï¿½ nullï¿½Î°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½È¯ï¿½Ñ´ï¿½.
     getDepartmentColor(departmentId, floorId) {
       let departmentColor = null;
 
-      //Ãþ ¾ÆÀÌµð·Î Ã£Àº °´Ã¼¸®½ºÆ®
+      //ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ï¿½ Ã£ï¿½ï¿½ ï¿½ï¿½Ã¼ï¿½ï¿½ï¿½ï¿½Æ®
       let eachFloorDepartmentObjectList = this.getEachDepartmentObjectList(
         floorId
       );
@@ -1902,7 +1900,7 @@ export default {
       return group;
     },
     loadLatestFloor() {
-      //ÇöÀç Ãþ ÀÌ¹ÌÁö ·Îµå
+      //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ ï¿½Îµï¿½
       if (this.latestFloorImageFromDb) {
         for (let i = 0; i < this.latestFloorImageFromDb.length; i++) {
           let newImageObject = {};
@@ -1922,7 +1920,7 @@ export default {
             newImageObject.imgFileType
           );
 
-          // ÇöÀçÃþ ÀÚ¸® ·Îµå
+          // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ú¸ï¿½ ï¿½Îµï¿½
           if (this.latestFloorSeatListFromDb.length) {
             for (let i = 0; i < this.latestFloorSeatListFromDb.length; i++) {
               this.currentSelectedFloorObject.floorId = this.latestFloorSeatListFromDb[
@@ -1945,7 +1943,7 @@ export default {
                 eachEmployeeSeatList.push(group);
               }
             }
-            //ÀÚ¸®°¡ ÀÖ¾î¾ß¸¸ º¸³¾ ÀÌº¥Æ®¹ö½º
+            //ï¿½Ú¸ï¿½ï¿½ï¿½ ï¿½Ö¾ï¿½ß¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®ï¿½ï¿½ï¿½ï¿½
             eventBus.$emit("pushAllSeatMap", this.allSeatMap);
             eventBus.$emit("pushEachEmployeeSeatMap", this.eachEmployeeSeatMap);
           } else {
@@ -1953,14 +1951,14 @@ export default {
           }
         }
 
-        // getStoreÀÇ floorIdList ±æÀÌ°¡ 2 ÀÌ»óÀÌ¸é ´Ù¸¥ ÃþÀÌ ÀÖ´Ù´Â ¶æ.
+        // getStoreï¿½ï¿½ floorIdList ï¿½ï¿½ï¿½Ì°ï¿½ 2 ï¿½Ì»ï¿½ï¿½Ì¸ï¿½ ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´Ù´ï¿½ ï¿½ï¿½.
         if (this.$store.state.getStore.floorIdList.length > 1) {
           this.loadOtherFloors();
         }
       }
     },
     loadOtherFloors() {
-      //´Ù¸¥ Ãþ ÀÌ¹ÌÁö ·Îµå
+      //ï¿½Ù¸ï¿½ ï¿½ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ ï¿½Îµï¿½
       for (let i = 0; i < this.otherFloorImageFromDb.length; i++) {
         let newImageObject = {};
         newImageObject.imgPath = this.otherFloorImageFromDb[i].imgPath;
@@ -1970,7 +1968,7 @@ export default {
 
         this.allImageMap.set(newImageObject.floorId, newImageObject);
       }
-      //´Ù¸¥ Ãþ ÀÚ¸® ·Îµå
+      //ï¿½Ù¸ï¿½ ï¿½ï¿½ ï¿½Ú¸ï¿½ ï¿½Îµï¿½
       if (this.otherFloorSeatListFromDb) {
         let keys = [];
         keys = Array.from(this.otherFloorSeatListFromDb.keys());
