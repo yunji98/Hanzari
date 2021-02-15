@@ -1,276 +1,154 @@
 <template>
   <div>
-    <v-card
-      flat
-      color="transparent"
-      v-if="
-        !manageSeatTabOfSelectedSeatsComponentStatus &&
-        !mappingEmployeeComponentStatus
-      "
-    >
-      <v-card-title>
-        <h4>{{ this.$t("textMakeSeat") }}</h4></v-card-title
-      >
+    <v-card flat color="transparent">
+      <!-- 서브메뉴 버튼 레이아웃 -->
       <v-row>
-        <v-col cols="12" sm="10">
-          <div class="mx-3">
-            <vue-numeric-input
-              :min="1"
-              :max="50"
-              v-model="selectedNumberOfAddSeat"
-              controls-type="updown"
-              @change="changeSelectedNumberOfAddSeat"
-              @focus="onFocusInText"
-              @blur="outFocusInText"
-              style="width: 300px"
-            ></vue-numeric-input>
-          </div>
+        <v-col cols="15" sm="3" style="max-width: 70px; margin-left: 10px">
+          <v-btn icon @click="clickbuildSubMenu">
+            <v-icon>build</v-icon>
+          </v-btn>
         </v-col>
-        <v-col cols="12" sm="2" style="margin-top: -20px">
-          <v-tooltip bottom>
-            <template v-slot:activator="{ on, attrs }">
-              <div v-bind="attrs" v-on="on">
-                <v-switch
-                  v-model="addVacantSwitchStatus"
-                  @change="changeAddVacantSwitchStatus"
-                ></v-switch>
-              </div>
-            </template>
-            <span>{{ this.$t("tooltipAddSeatSwitch") }}</span>
-          </v-tooltip>
-        </v-col>
-      </v-row>
-      <v-card-title>
-        <h4>
-          {{ this.$t("textChangeAllSeatSize") }}
-        </h4>
-      </v-card-title>
-      <v-row>
-        <v-col cols="2" sm="2">
-          <div class="mx-2">
-            <img src="@/assets/width.png" width="30px" height="30px" />
-          </div>
-        </v-col>
-        <v-col cols="3" sm="2">
-          <vue-numeric-input
-            :min="1"
-            :max="1000"
-            v-model="seatWidth"
-            controls-type="updown"
-            style="width: 250px; margin-left: -30px; top: 6px"
-            @focus="onFocusInText"
-            @blur="outFocusInText"
-          ></vue-numeric-input>
-        </v-col>
-      </v-row>
-      <v-row>
-        <v-col cols="2" sm="2" style="margin-left: 3px">
-          <div class="mx-2">
-            <img
-              src="@/assets/height.png"
-              width="30px"
-              height="30px"
-              margin-top="3px"
-            />
-          </div>
-        </v-col>
-        <v-col cols="3" sm="2">
-          <vue-numeric-input
-            :min="1"
-            :max="1000"
-            v-model="seatHeight"
-            controls-type="updown"
-            style="width: 250px; margin-left: -33px; top: 5px"
-            @focus="onFocusInText"
-            @blur="outFocusInText"
-          ></vue-numeric-input> </v-col
-        ><v-col cols="12" sm="6">
+        <v-col cols="15" sm="3" style="max-width: 70px">
           <v-btn
-            color="#2c4f91"
-            @click="clickSeatSizeBtn"
-            style="
-              top: 4px;
-              height: 28px;
-              color: white;
-              font-size: 12px;
-              margin-left: 180px;
-            "
-            >{{ this.$t("btnOk") }}</v-btn
-          ></v-col
-        >
+            icon
+            :disabled="!manageSeatTabOfSelectedSeatsComponentStatus"
+            @click="clickAddSubMenu"
+          >
+            <v-icon>add</v-icon>
+          </v-btn>
+        </v-col>
+        <v-col cols="15" sm="3" style="max-width: 70px">
+          <v-btn
+            icon
+            :disabled="!manageSeatTabOfSelectedSeatsComponentStatus"
+            @click="clickDeleteSubMenu"
+          >
+            <v-icon>delete</v-icon>
+          </v-btn>
+        </v-col>
+        <v-col cols="15" sm="3" style="max-width: 70px">
+          <v-btn
+            icon
+            :disabled="!manageSeatTabOfSelectedSeatsComponentStatus"
+            @click="clickSwipeSubMenu"
+          >
+            <v-icon>swipe</v-icon>
+          </v-btn>
+        </v-col>
+        <v-col cols="15" sm="3" style="max-width: 70px">
+          <v-btn
+            icon
+            :disabled="!manageSeatTabOfSelectedSeatsComponentStatus"
+            @click="clickNotesSubMenu"
+          >
+            <v-icon>notes</v-icon>
+          </v-btn>
+        </v-col>
       </v-row>
-      <v-card-title>
-        <h4>{{ this.$t("textInformationOfSeat") }}</h4></v-card-title
-      >
-      <v-radio-group @change="viewSeatInfo" v-model="viewSeatStatus" row>
-        <div class="mx-2"></div>
-        <v-radio
-          :label="$t('contextMenuViewSeatAboutEmployeeName')"
-          :value="0"
-        ></v-radio>
-        <v-radio
-          :label="$t('contextMenuViewSeatAboutNumber')"
-          :value="1"
-        ></v-radio>
-        <v-radio
-          :label="$t('contextMenuViewSeatAboutDepartment')"
-          :value="2"
-        ></v-radio>
-        <v-radio
-          :label="$t('contextMenuViewSeatAboutName')"
-          :value="3"
-        ></v-radio>
-      </v-radio-group>
 
-      <v-card-title>
-        <h4>{{ this.$t("textOpactiyOfSeat") }}</h4></v-card-title
-      >
-      <div class="mx-2">
-        <v-slider
-          v-model="seatOpacity"
-          @change="changeSeatOpacity"
-          :step="0.25"
-          :min="0"
-          :max="1"
-          class="align-center"
+      <!-- 첫번째 서브 메뉴-->
+      <div v-if="buildSubMenuState">
+        <v-card-title>
+          <h4>{{ this.$t("textMakeSeat") }}</h4></v-card-title
         >
-        </v-slider>
+        <v-row>
+          <v-col cols="12" sm="10">
+            <div style="margin-left: 15px">
+              <vue-numeric-input
+                :min="1"
+                :max="50"
+                v-model="selectedNumberOfAddSeat"
+                controls-type="updown"
+                @change="changeSelectedNumberOfAddSeat"
+                @focus="onFocusInText"
+                @blur="outFocusInText"
+                style="width: 228px"
+              ></vue-numeric-input>
+            </div>
+          </v-col>
+          <v-col cols="12" sm="2" style="margin-top: -23px; margin-left: -5px">
+            <v-tooltip bottom>
+              <template v-slot:activator="{ on, attrs }">
+                <div v-bind="attrs" v-on="on">
+                  <v-switch
+                    v-model="addVacantSwitchStatus"
+                    @change="changeAddVacantSwitchStatus"
+                  ></v-switch>
+                </div>
+              </template>
+              <span>{{ this.$t("tooltipAddSeatSwitch") }}</span>
+            </v-tooltip>
+          </v-col>
+        </v-row>
+
+        <v-divider class="mx-4"></v-divider>
+
+        <v-row>
+          <v-col cols="12" sm="10">
+            <v-card-title>
+              <h4>{{ this.$t("textViewSeatTooltip") }}</h4></v-card-title
+            >
+          </v-col>
+          <v-col cols="12" sm="2" style="margin-top: -10px; margin-left: -5px">
+            <v-tooltip bottom>
+              <template v-slot:activator="{ on, attrs }">
+                <div v-bind="attrs" v-on="on">
+                  <v-switch
+                    v-model="showToolTipForSeatStatus"
+                    @change="changeShowToolTipForSeatStatus"
+                  ></v-switch>
+                </div>
+              </template>
+              <span>{{ this.$t("tooltipForSeat") }}</span>
+            </v-tooltip>
+          </v-col>
+        </v-row>
+
+        <v-divider class="mx-4"></v-divider>
+
+        <v-card-title>
+          <h4>{{ this.$t("textInformationOfSeat") }}</h4></v-card-title
+        >
+        <v-row style="margin-left: 15px">
+          <v-radio-group @change="viewSeatInfo" v-model="viewSeatStatus" row>
+            <v-radio
+              :label="$t('contextMenuViewSeatAboutEmployeeName')"
+              :value="0"
+            ></v-radio>
+            <div style="margin-right: 5px"></div>
+            <v-radio
+              :label="$t('contextMenuViewSeatAboutNumber')"
+              :value="1"
+            ></v-radio>
+            <div style="margin-right: 5px"></div>
+            <v-radio
+              :label="$t('contextMenuViewSeatAboutDepartment')"
+              :value="2"
+            ></v-radio>
+            <div style="margin-right: 5px"></div>
+            <v-radio
+              :label="$t('contextMenuViewSeatAboutName')"
+              :value="3"
+            ></v-radio>
+          </v-radio-group>
+        </v-row>
       </div>
 
-      <v-row>
-        <v-col>
-          <div class="mx-4">
-            <v-btn
-              outlined
-              color="red"
-              style="height: 30px; color: white; font-size: 12px; margin-left:10px'; width:400px; "
-              @click="clickDeleteAllSeatBtn"
-            >
-              {{ this.$t("btnDeleteAllSeats") }}
-            </v-btn>
-          </div>
-        </v-col>
-      </v-row>
-    </v-card>
+      <!--두번째 서브메뉴-->
+      <MappingEmployee v-if="addSubMenuState" />
 
-    <v-card
-      flat
-      color="transparent"
-      v-if="
-        manageSeatTabOfSelectedSeatsComponentStatus &&
-        !mappingEmployeeComponentStatus
-      "
-    >
-      <div>
-        <v-row>
-          <v-col>
-            <div class="mx-1">
-              <v-btn
-                outlined
-                color="#2c4f91"
-                style="
-                  height: 30px;
-                  font-size: 12px;
-                  width: 400px;
-                  margin-left: 10px;
-                "
-                @click="getMappingEmployeeComponent"
-              >
-                {{ this.$t("btnMappingEmployee") }}
-              </v-btn>
-            </div>
-          </v-col>
-        </v-row>
-        <v-row>
-          <v-col>
-            <div class="mx-1">
-              <v-btn
-                outlined
-                color="#2c4f91"
-                style="
-                  height: 30px;
-                  font-size: 12px;
-                  width: 400px;
-                  margin-left: 10px;
-                "
-                @click="clickChangeSeatToVacant"
-              >
-                {{ this.$t("btnChangeToVacant") }}
-              </v-btn>
-            </div>
-          </v-col>
-          <v-col> </v-col>
-        </v-row>
-        <v-divider class="mx-4"></v-divider>
-        <v-card-title>
-          <h4>
-            {{ this.$t("textChangeSeatSize") }}
-          </h4>
-        </v-card-title>
-        <v-row>
-          <v-col cols="2" sm="2">
-            <div class="mx-2">
-              <img src="@/assets/width.png" width="30px" height="30px" />
-            </div>
-          </v-col>
-          <v-col cols="3" sm="2">
-            <vue-numeric-input
-              :min="1"
-              :max="1000"
-              v-model="seatDragWidth"
-              controls-type="updown"
-              style="width: 250px; margin-left: -30px; top: 6px"
-              @focus="onFocusInText"
-              @blur="outFocusInText"
-            ></vue-numeric-input>
-          </v-col>
-        </v-row>
-        <v-row>
-          <v-col cols="2" sm="2" style="margin-left: 3px">
-            <div class="mx-2">
-              <img
-                src="@/assets/height.png"
-                width="30px"
-                height="30px"
-                margin-top="3px"
-              />
-            </div>
-          </v-col>
-          <v-col cols="3" sm="2">
-            <vue-numeric-input
-              :min="1"
-              :max="1000"
-              v-model="seatDragHeight"
-              controls-type="updown"
-              style="width: 250px; margin-left: -33px; top: 5px"
-              @focus="onFocusInText"
-              @blur="outFocusInText"
-            ></vue-numeric-input> </v-col
-          ><v-col cols="12" sm="6">
-            <v-btn
-              color="#2c4f91"
-              @click="clickDragSeatSizeBtn"
-              style="
-                top: 4px;
-                height: 28px;
-                color: white;
-                font-size: 12px;
-                margin-left: 180px;
-              "
-              >{{ this.$t("btnOk") }}</v-btn
-            ></v-col
-          >
-        </v-row>
+      <!--세번째 서브메뉴-->
+      <DeleteSeatOrEmployee v-if="deleteSubMenuState" />
 
-        <v-divider class="mx-4"></v-divider>
-
+      <!--네번째 서브메뉴-->
+      <div v-if="swipeSubMenuState">
         <v-card-title>
           <h4>{{ this.$t("textChangeFloorSeat") }}</h4></v-card-title
         >
         <v-row>
           <v-col cols="12" sm="9">
             <v-select
-              style="margin-left: 10px"
+              style="margin-left: 15px"
               :items="floorItems"
               :label="$t('selectLabelFloor')"
               :no-data-text="$t('selectNoDataFloor')"
@@ -289,7 +167,14 @@
             ><v-btn
               color="#2c4f91"
               @click="changeFloorSeat"
-              style="top: 4px; height: 36px; color: white; font-size: 12px"
+              style="
+                float: right;
+                top: 4px;
+                margin-right: 15px;
+                height: 30px;
+                color: white;
+                font-size: 12px;
+              "
               >{{ this.$t("btnOk") }}</v-btn
             ></v-col
           >
@@ -301,7 +186,7 @@
         <v-row>
           <v-col cols="12" sm="9">
             <v-select
-              style="margin-left: 10px"
+              style="margin-left: 15px"
               :items="buildingItems"
               :label="$t('selectLabelBuilding')"
               :no-data-text="$t('selectNoDataBuilding')"
@@ -320,11 +205,83 @@
             ><v-btn
               color="#2c4f91"
               @click="changeBuildingSeat"
-              style="top: 4px; height: 36px; color: white; font-size: 12px"
+              style="
+                float: right;
+                top: 4px;
+                margin-right: 15px;
+                height: 30px;
+                color: white;
+                font-size: 12px;
+              "
               >{{ this.$t("btnOk") }}</v-btn
             ></v-col
           >
         </v-row>
+      </div>
+
+      <!--다섯번째 서브메뉴-->
+      <div v-if="notesSubMenuState">
+        <v-card-title>
+          <h4>
+            {{ this.$t("textChangeSeatSize") }}
+          </h4>
+        </v-card-title>
+        <v-row>
+          <v-col cols="2" sm="2">
+            <div class="mx-2">
+              <img src="@/assets/width.png" width="30px" height="30px" />
+            </div>
+          </v-col>
+          <v-col cols="3" sm="2">
+            <vue-numeric-input
+              :min="1"
+              :max="1000"
+              v-model="seatDragWidth"
+              controls-type="updown"
+              style="width: 250px; margin-left: -30px; top: 5px"
+              @focus="onFocusInText"
+              @blur="outFocusInText"
+            ></vue-numeric-input>
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col cols="2" sm="2">
+            <div style="margin-left: 12px">
+              <img
+                src="@/assets/height.png"
+                width="30px"
+                height="30px"
+                margin-top="3px"
+              />
+            </div>
+          </v-col>
+          <v-col cols="3" sm="2">
+            <vue-numeric-input
+              :min="1"
+              :max="1000"
+              v-model="seatDragHeight"
+              controls-type="updown"
+              style="width: 250px; margin-left: -30px; top: 5px"
+              @focus="onFocusInText"
+              @blur="outFocusInText"
+            ></vue-numeric-input> </v-col
+          ><v-col>
+            <v-btn
+              color="#2c4f91"
+              @click="clickDragSeatSizeBtn"
+              style="
+                float: right;
+                top: 4px;
+                margin-right: 15px;
+                height: 30px;
+                color: white;
+                font-size: 12px;
+              "
+              >{{ this.$t("btnOk") }}</v-btn
+            ></v-col
+          >
+        </v-row>
+
         <v-divider class="mx-4"></v-divider>
 
         <v-card-title>
@@ -335,7 +292,7 @@
             <v-textarea
               solo
               name="input-7-4"
-              style="margin-left: 10px"
+              style="margin-left: 15px"
               :label="$t('textInMemoTextArea')"
               v-model="memoComment"
               @focus="onFocusInText"
@@ -346,31 +303,44 @@
             ><v-btn
               color="#2c4f91"
               @click="writeMemo"
-              style="top: 4px; height: 36px; color: white; font-size: 12px"
+              style="
+                float: right;
+                top: 4px;
+                margin-right: 15px;
+                height: 30px;
+                color: white;
+                font-size: 12px;
+              "
               >{{ this.$t("btnOk") }}</v-btn
             ></v-col
           >
         </v-row>
       </div>
-    </v-card>
 
-    <MappingEmployee v-if="mappingEmployeeComponentStatus" />
+      <v-card-actions>
+        <v-checkbox
+          v-model="checkBoxSelectAll"
+          :label="$t('checkBoxSelectAll')"
+          @click="changeSelectAllStatus"
+        ></v-checkbox>
+      </v-card-actions>
+    </v-card>
   </div>
 </template>
 
 <script>
 import MappingEmployee from "@/components/MappingEmployee.vue";
+import DeleteSeatOrEmployee from "@/components/DeleteSeatOrEmployee.vue";
 import { eventBus } from "../main";
 import axios from "axios";
 import { refreshToken } from "@/refreshToken.js";
 import "material-design-icons-iconfont/dist/material-design-icons.css";
-
-const HOST = "http://172.30.6.192:8082";
-
+const HOST = "http://172.30.6.192:8080";
 export default {
   name: "ManageSeats",
   components: {
     MappingEmployee,
+    DeleteSeatOrEmployee,
   },
   props: [
     "allFloorListToManageSeats",
@@ -383,27 +353,28 @@ export default {
     "seatWidthToManageSeats",
     "seatHeightToManageSeats",
     "memoCommentToManageSeats",
+    "checkBoxSelectAllStatus",
   ],
   data() {
     return {
+      buildSubMenuState: true,
+      addSubMenuState: false,
+      deleteSubMenuState: false,
+      swipeSubMenuState: false,
+      notesSubMenuState: false,
       manageSeatTabOfSelectedSeatsComponentStatus: false,
       mappingEmployeeComponentStatus: false,
-
       floorItems: [],
       selectedFloorItemsId: null,
-
       buildingItems: [],
       buildingFloorItems: new Map(),
       selectedBuildingFloorItems: null,
-
       addVacantSwitchStatus: false,
-
+      showToolTipForSeatStatus: true,
       allFloorList: null,
       currentSelectedFloorObject: null,
-
       numberOfAddSeatItems: [],
       selectedNumberOfAddSeat: null,
-
       //드래그 자리 사이즈,
       seatHeight: null,
       seatWidth: null,
@@ -411,24 +382,20 @@ export default {
       seatDragWidth: null,
       seatDragHeightList: null,
       seatDragWidthList: null,
-
       //라디오 버튼 상태값
       viewSeatStatus: 0,
-
       // 자리 불투명도
       seatOpacity: 1,
-
       // 텍스트 필드에 키보드 이벤트를 할 때 자리의 이벤트를 막기위함
       textFocusStatus: false,
-
       // 메모 내용
       memoComment: null,
+      checkBoxSelectAll: false,
     };
   },
   watch: {
     allFloorListToManageSeats: {
       deep: true,
-
       handler() {
         console.log("allFloorListToManageSeats changed!");
         this.allFloorList = this.allFloorListToManageSeats;
@@ -440,7 +407,6 @@ export default {
     },
     selectedFloorObjectToManageSeats: {
       deep: true,
-
       handler() {
         console.log("selectedFloorObjectToManageSeats changed!");
         this.currentSelectedFloorObject = this.selectedFloorObjectToManageSeats;
@@ -451,24 +417,16 @@ export default {
   created() {
     // 만약 ManageSeats.vue에 들어오기 전에 자리 선택한 적이 있을때
     this.manageSeatTabOfSelectedSeatsComponentStatus = this.manageSeatTabOfSelectedSeatsComponentStatusToManageSeats;
-
     this.seatHeight = this.seatHeightToManageSeats;
     this.seatWidth = this.seatWidthToManageSeats;
-
     this.seatDragHeight = this.seatDragHeightToManageSeats;
     this.seatDragWidth = this.seatDragWidthToManageSeats;
-    console.log(this.seatDragWidth + "[AssignSeats]" + this.seatDragWidth);
-
     this.seatDragHeightList = this.seatDragHeightListToManageSeats;
     this.seatDragWidthList = this.seatDragWidthListToManageSeats;
-    console.log(
-      this.seatDragHeightList + "[AssignSeats List]" + this.seatDragWidthList
-    );
-
     this.memoComment = this.memoCommentToManageSeats;
-
+    this.checkBoxSelectAll = this.checkBoxSelectAllStatus;
     this.changeSeatSizeInformation();
-
+    eventBus.$emit("destroyTabEventFromManageSeats");
     // DB에 이미 있을 때 + 층 데이터 건들지 않음
     if (
       this.$store.state.getStore.allFloor &&
@@ -479,17 +437,14 @@ export default {
       this.allFloorList = tempList.reverse();
       this.currentSelectedFloorObject = this.allFloorList[0];
     }
-
     // ManageSeats.vue 들어오기 전에 변화가 있을때(층 편집 관련)
     if (this.allFloorListToManageSeats) {
       this.allFloorList = this.allFloorListToManageSeats;
     }
-
     // ManageSeats.vue 들어오기 전에 현재층이 바뀌었을때(단순 층 이동)
     if (this.selectedFloorObjectToManageSeats) {
       this.currentSelectedFloorObject = this.selectedFloorObjectToManageSeats;
     }
-
     this.initNumberOfAddSeatItems();
     this.initFloorItems();
     this.initBuildingItems();
@@ -497,44 +452,75 @@ export default {
     eventBus.$on(
       "pushManageSeatTabOfSelectedSeatsComponentStatus",
       (manageSeatTabOfSelectedSeatsComponentStatus) => {
+        if (!manageSeatTabOfSelectedSeatsComponentStatus) {
+          this.clickbuildSubMenu();
+        }
         this.manageSeatTabOfSelectedSeatsComponentStatus = manageSeatTabOfSelectedSeatsComponentStatus;
       }
     );
+
+    eventBus.$on("pushCheckBoxSelectAllStatus", (checkBoxSelectAllStatus) => {
+      this.checkBoxSelectAll = checkBoxSelectAllStatus;
+    });
 
     eventBus.$on("pushMemoComment", (memoComment) => {
       this.memoComment = memoComment;
     });
 
-    eventBus.$on(
-      "pushMappingEmployeeComponentStatus",
-      (mappingEmployeeComponentStatus) => {
-        this.mappingEmployeeComponentStatus = mappingEmployeeComponentStatus;
-      }
-    );
-
     eventBus.$on("sendDragSeatInformation", (objWidth, objHeight) => {
       this.seatDragWidth = objWidth;
       this.seatDragHeight = objHeight;
-      console.log(this.seatDragWidth + "[ManageSeats]" + this.seatDragHeight);
     });
 
     eventBus.$on("sendDragMultipleSeatList", (objWidthList, objHeightList) => {
       this.seatDragWidthList = objWidthList;
       this.seatDragHeightList = objHeightList;
-      console.log(
-        this.seatDragWidthList + "[ManageSeats List]" + this.seatDragHeightList
-      );
       this.changeSeatSizeInformation();
     });
   },
   beforeDestroy() {
     eventBus.$off("pushManageSeatTabOfSelectedSeatsComponentStatus");
+    eventBus.$off("pushCheckBoxSelectAllStatus");
     eventBus.$off("pushMemoComment");
-    eventBus.$off("pushMappingEmployeeComponentStatus");
     eventBus.$off("sendDragSeatInformation");
     eventBus.$off("sendDragMultipleSeatList");
   },
   methods: {
+    clickbuildSubMenu() {
+      this.buildSubMenuState = true;
+      this.addSubMenuState = false;
+      this.deleteSubMenuState = false;
+      this.swipeSubMenuState = false;
+      this.notesSubMenuState = false;
+    },
+    clickAddSubMenu() {
+      this.buildSubMenuState = false;
+      this.addSubMenuState = true;
+      this.deleteSubMenuState = false;
+      this.swipeSubMenuState = false;
+      this.notesSubMenuState = false;
+    },
+    clickDeleteSubMenu() {
+      this.buildSubMenuState = false;
+      this.addSubMenuState = false;
+      this.deleteSubMenuState = true;
+      this.swipeSubMenuState = false;
+      this.notesSubMenuState = false;
+    },
+    clickSwipeSubMenu() {
+      this.buildSubMenuState = false;
+      this.addSubMenuState = false;
+      this.deleteSubMenuState = false;
+      this.swipeSubMenuState = true;
+      this.notesSubMenuState = false;
+    },
+    clickNotesSubMenu() {
+      this.buildSubMenuState = false;
+      this.addSubMenuState = false;
+      this.deleteSubMenuState = false;
+      this.swipeSubMenuState = false;
+      this.notesSubMenuState = true;
+    },
     onFocusInText() {
       this.textFocusStatus = true;
       eventBus.$emit("pushFocusStatus", this.textFocusStatus);
@@ -543,11 +529,13 @@ export default {
       this.textFocusStatus = false;
       eventBus.$emit("pushFocusStatus", this.textFocusStatus);
     },
+    changeSelectAllStatus() {
+      eventBus.$emit("pushSelectAllStatus", this.checkBoxSelectAll);
+    },
     initNumberOfAddSeatItems() {
       for (let i = 2; i < 100; i *= 2) {
         this.numberOfAddSeatItems.push(i);
       }
-
       //v-select에 초기값을 설정해주는 과정으로 v-select 선택하지않아도 초기값으로 AssignSeats 에게 이벤트를 보낸다.
       this.selectedNumberOfAddSeat = this.numberOfAddSeatItems[0];
       this.changeSelectedNumberOfAddSeat();
@@ -562,7 +550,6 @@ export default {
           ) {
             continue;
           }
-
           this.floorItems.push(this.allFloorList[i]);
         }
       }
@@ -572,7 +559,6 @@ export default {
       let buildingList = this.$store.state.getStore.allBuildings;
       let response = null;
       let errorStatus = null;
-
       for (let i = 0; i < buildingList.length; i++) {
         if (
           buildingList[i].buildingId ===
@@ -580,7 +566,6 @@ export default {
         ) {
           continue;
         }
-
         let allFloor = [];
         try {
           response = await axios
@@ -612,20 +597,15 @@ export default {
           newFloorObject.floorOrder = response.data[i].floor_order;
           newFloorObject.isObjFromDB = true;
           newFloorObject.httpRequestPostStatus = false;
-
           allFloor.push(newFloorObject);
         }
-
         let buildingObject = {};
         buildingObject.buildingName = buildingList[i].buildingName;
         buildingObject.allFloorList = allFloor;
-
         this.buildingFloorItems.set(buildingList[i].buildingId, buildingObject);
       }
-
       let keys = [];
       keys = Array.from(this.buildingFloorItems.keys());
-
       for (let i = 0; i < this.buildingFloorItems.size; i++) {
         this.buildingItems.push({
           header: this.buildingFloorItems.get(keys[i]).buildingName,
@@ -706,11 +686,9 @@ export default {
       if (this.selectedBuildingFloorItems) {
         let keys = [];
         keys = Array.from(this.buildingFloorItems.keys());
-
         let moveBuildingId = null;
         let moveBuildingName = null;
         let moveFloorName = null;
-
         for (let i = 0; i < this.buildingFloorItems.size; i++) {
           this.buildingFloorItems.get(keys[i]).allFloorList.forEach((floor) => {
             if (floor.floorId === this.selectedBuildingFloorItems) {
@@ -721,12 +699,10 @@ export default {
             }
           });
         }
-
         let image = await this.isImage(
           moveBuildingId,
           this.selectedBuildingFloorItems
         );
-
         if (image === "") {
           this.$notice.info({
             title: this.$i18n.t("alertNoImage"),
@@ -777,18 +753,18 @@ export default {
     changeAddVacantSwitchStatus() {
       eventBus.$emit("pushAddVacantSwitchStatus", this.addVacantSwitchStatus);
     },
+    changeShowToolTipForSeatStatus() {
+      eventBus.$emit(
+        "pushShowToolTipForSeatStatus",
+        this.showToolTipForSeatStatus
+      );
+    },
     changeSelectedNumberOfAddSeat() {
       console.log(this.selectedNumberOfAddSeat);
       eventBus.$emit(
         "pushSelectedNumberOfAddSeat",
         this.selectedNumberOfAddSeat
       );
-    },
-    clickChangeSeatToVacant() {
-      eventBus.$emit("changeSeatToVacant");
-    },
-    getMappingEmployeeComponent() {
-      this.mappingEmployeeComponentStatus = true;
     },
     clickSeatSizeBtn() {
       eventBus.$emit("sendSeatSize", this.seatWidth, this.seatHeight);
@@ -803,36 +779,12 @@ export default {
     viewSeatInfo() {
       eventBus.$emit("pushViewSeatInfo", this.viewSeatStatus);
     },
-    changeSeatOpacity() {
-      eventBus.$emit("pushSeatOpacity", this.seatOpacity);
-    },
-    clickDeleteAllSeatBtn() {
-      let message = {
-        title: this.$i18n.t("titleConfirmDeleteAll"),
-        body: this.$i18n.t("confirmDeleteAll"),
-      };
-      let options = {
-        html: true,
-        okText: this.$i18n.t("btnConfirm"),
-        cancelText: this.$i18n.t("btnCancel"),
-      };
-      this.$dialog
-        .confirm(message, options)
-        .then((dialog) => {
-          eventBus.$emit("pushDeleteAllSeatStatus", true);
-        })
-        .catch(() => {
-          return;
-        });
-    },
     changeSeatSizeInformation() {
       if (this.seatDragHeightList && this.seatDragWidthList) {
         let seatDragHeightSet = new Set(this.seatDragHeightList);
         let seatDragWidthSet = new Set(this.seatDragWidthList);
-
         //console.log(seatDragHeightSet);
         //console.log(seatDragWidthSet);
-
         if (seatDragHeightSet.size > 1) {
           //console.log("height different");
           this.seatDragHeight = null;

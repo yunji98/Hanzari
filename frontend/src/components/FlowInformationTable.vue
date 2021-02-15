@@ -41,6 +41,21 @@
                   >sync</v-icon
                 >
               </v-btn>
+              <v-avatar
+                v-if="
+                  (userAuthority === 'viewer' || userAuthority === 'manager') &&
+                  row.item.name != '전체' &&
+                  row.item.name != '공석'
+                "
+                size="32"
+                :color="getChipColor(row.item.name)"
+              >
+                <v-icon
+                  :color="getChipTextColor(getChipColor(row.item.name))"
+                  medium
+                  >format_paint
+                </v-icon></v-avatar
+              >
             </td>
             <td>{{ row.item.number }}</td>
             <td>
@@ -204,7 +219,6 @@ export default {
       return chipColor;
     },
     discriminateLightOrDark(color) {
-      console.log(color);
       if (color) {
         let r = null;
         let g = null;

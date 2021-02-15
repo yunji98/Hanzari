@@ -38,6 +38,7 @@
               :seatDragWidthListToManageSeats="seatDragWidthList"
               :seatDragHeightListToManageSeats="seatDragHeightList"
               :memoCommentToManageSeats="memoCommentToManageSeats"
+              :checkBoxSelectAllStatus="checkBoxSelectAllStatus"
             ></component>
           </v-card-text>
         </v-card>
@@ -69,6 +70,7 @@ export default {
       selectedFloorObjectToManageSeats: null,
 
       memoCommentToManageSeats: null,
+      checkBoxSelectAllStatus: null,
 
       //드래그 자리 사이즈,
       seatHeight: null,
@@ -101,33 +103,39 @@ export default {
     };
   },
   created() {
-    //초기에 두번째 탭 선택 안했을때도 선택한 자리에 대해서 뜨는 탭을 보여지게 하기 위함
+    //자리 선택시 무조건 두번째 탭으로 자동 이동
+    eventBus.$on("pushShowSeatTabStatus", () => {
+      this.tab = 1;
+    });
+
+    //초기에 두번째 탭 선택 안했을때 자리를 선택하면 나머지 서브메뉴들 enable 시켜주기 위함
     eventBus.$on(
       "pushManageSeatTabOfSelectedSeatsComponentStatus",
       (manageSeatTabOfSelectedSeatsComponentStatus) => {
         this.manageSeatTabOfSelectedSeatsComponentStatusToManageSeats = manageSeatTabOfSelectedSeatsComponentStatus;
-        if (manageSeatTabOfSelectedSeatsComponentStatus) {
-          this.tab = 1;
-        }
         if (manageSeatTabOfSelectedSeatsComponentStatus === false) {
           this.seatHeight = null;
           this.seatWidth = null;
         }
       }
     );
-    //초기에 두번째 탭 선택 안했을때도 선택한 자리에 대해서 메모를 보여지게 하기 위함
+
+    //초기에 두번째 탭 선택 안했을때 자리가 전체 선택일때 체크박스에 감지하기 위함
+    eventBus.$on("pushCheckBoxSelectAllStatus", (checkBoxSelectAllStatus) => {
+      this.checkBoxSelectAllStatus = checkBoxSelectAllStatus;
+    });
+
+    //초기에 두번째 탭 선택 안했을때 선택한 자리에 대해서 메모를 보여지게 하기 위함
     eventBus.$on("pushMemoComment", (memoComment) => {
       this.memoCommentToManageSeats = memoComment;
     });
-    //매핑된 사원 추가시 검색 탭으로 사원 맵 받기 위한 event
-    eventBus.$on("pushEachEmployeeSeatMap", (eachEmployeeSeatMap) => {
-      this.eachEmployeeSeatMapToManageSearch = eachEmployeeSeatMap;
-    });
-    //모든 층 객체를 가지고 있는 리스트를 받기 위한 event
+
+    //모든 층 객체를 가지고 있는 리스트를 받기 위한 event => watch로 감시
     eventBus.$on("pushAllFloorList", (allFloorList) => {
       this.allFloorListToManageSeats = allFloorList;
     });
-    //선택한 층에 대한 값 받아와서 층 전환하기 위한 event
+
+    //선택한 층에 대한 값 받아와서 층 전환하기 위한 event => watch로 감시
     eventBus.$on("pushSelectedFloorObject", (floorObject) => {
       this.selectedFloorObjectToManageSeats = floorObject;
     });
@@ -135,21 +143,43 @@ export default {
     eventBus.$on("sendDragSeatInformation", (objWidth, objHeight) => {
       this.seatDragWidth = objWidth;
       this.seatDragHeight = objHeight;
-      console.log(this.seatDragWidth + "[tabs]" + this.seatDragHeight);
     });
 
     eventBus.$on("sendDragMultipleSeatList", (objWidthList, objHeightList) => {
       this.seatDragWidthList = objWidthList;
       this.seatDragHeightList = objHeightList;
-      console.log(this.seatDragWidthList + "[tabs]" + this.seatDragHeightList);
+    });
+
+    //매핑된 사원 추가시 검색 탭으로 사원 맵 받기 위한 event
+    eventBus.$on("pushEachEmployeeSeatMap", (eachEmployeeSeatMap) => {
+      this.eachEmployeeSeatMapToManageSearch = eachEmployeeSeatMap;
+    });
+
+    eventBus.$on("destroyTabEventFromManageSeats", () => {
+      this.destroyManageSeatsEvent();
+    });
+
+    eventBus.$on("destroyTabEventFromManageSearch", () => {
+      this.destroyManageSearchEvent();
     });
   },
+  methods: {
+    destroyManageSeatsEvent() {
+      eventBus.$off("pushManageSeatTabOfSelectedSeatsComponentStatus");
+      eventBus.$off("pushCheckBoxSelectAllStatus");
+      eventBus.$off("pushMemoComment");
+      eventBus.$off("sendDragSeatInformation");
+      eventBus.$off("sendDragMultipleSeatList");
+    },
+    destroyManageSearchEvent() {
+      eventBus.$off("pushEachEmployeeSeatMap");
+    },
+  },
   beforeDestroy() {
-    eventBus.$off("pushManageSeatTabOfSelectedSeatsComponentStatus");
-    eventBus.$off("pushMemoComment");
-    eventBus.$off("pushEachEmployeeSeatMap");
     eventBus.$off("pushAllFloorList");
     eventBus.$off("pushSelectedFloorObject");
+    eventBus.$off("destroyTabEventFromManageSeats");
+    eventBus.$off("destroyTabEventFromManageSearch");
   },
 };
 </script>

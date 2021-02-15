@@ -1,7 +1,7 @@
 <template>
   <v-app id="app">
     <div v-if="this.$store.state.getStore.otherFloorsSeatMap" class="parent">
-      <v-navigation-drawer v-model="leftDrawer" app :width="450">
+      <v-navigation-drawer v-model="leftDrawer" app :width="375">
         <Tabs />
       </v-navigation-drawer>
 
@@ -77,11 +77,12 @@
           v-on:reloadData="reloadData"
           v-on:downloadCSVFile="downloadCSVFile"
           v-on:saveFromCSVFileToDB="saveFromCSVFileToDB"
+          :leftDrawer="leftDrawer"
         />
         <v-navigation-drawer
           v-model="rightDrawer"
           app
-          :width="450"
+          :width="375"
           :right="true"
         >
           <v-toolbar color="#2c4f91" :height="95" dark> </v-toolbar>
@@ -104,7 +105,7 @@ import DepartmentColorChips from "@/components/DepartmentColorChips.vue";
 import FlowInformationTable from "@/components/FlowInformationTable.vue";
 import { refreshToken } from "../refreshToken.js";
 
-const HOST = "http://172.30.6.192:8082";
+const HOST = "http://172.30.6.192:8080";
 
 export default {
   name: "Hanzari",
@@ -150,6 +151,14 @@ export default {
     eventBus.$on("sendStoreStatus", (saveStatus) => {
       this.saveStatus = saveStatus;
     });
+  },
+  mounted(){
+    if (window.screenLeft > 0 || window.screenTop > 0) {
+      this.leftDrawer = false;
+    }
+    else{
+      this.leftDrawer = true;
+    }
   },
   beforeDestroy() {
     eventBus.$off("sendStoreStatus");

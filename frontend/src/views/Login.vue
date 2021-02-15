@@ -64,7 +64,7 @@
 </template>
 
 <script>
-const HOST = "http://172.30.6.192:8082";
+const HOST = "http://172.30.6.192:8080";
 export default {
   data() {
     return {

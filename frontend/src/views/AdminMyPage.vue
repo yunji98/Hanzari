@@ -85,7 +85,7 @@
                     <v-card
                       :elevation="hover ? 12 : 2"
                       v-if="buildingObj.buildingId === 0"
-                      style="height: 300px"
+                      style="height: 150px"
                       @click="getBuildingSetting"
                     >
                       <v-card-title class="justify-center">{{
@@ -100,6 +100,7 @@
                           left: '50%',
                           transform: 'translateX(-50%)',
                           top: '25%',
+                          bottom: '25%',
                         }"
                         ><v-icon x-large dark>add_circle</v-icon></v-btn
                       >
@@ -108,7 +109,7 @@
                     <v-card
                       :elevation="hover ? 12 : 2"
                       v-else
-                      style="height: 300px"
+                      style="height: 150px"
                       @click="selectBuilding(buildingObj)"
                     >
                       <v-card-title class="justify-center"
@@ -118,7 +119,7 @@
                         <span>{{ buildingObj.floorCnt }}</span>
                         <v-menu bottom offset-y
                           ><template v-slot:activator="{ on, attrs }">
-                            <v-btn text v-bind="attrs" v-on="on"
+                            <v-btn text v-bind="attrs" v-on="on" n
                               ><v-icon>more_vert</v-icon></v-btn
                             >
                           </template>
@@ -140,7 +141,6 @@
                           </v-list></v-menu
                         ></v-col
                       >
-                      <v-divider />
                     </v-card>
                   </v-hover>
                 </v-col>
@@ -168,7 +168,7 @@ import EditPassword from "@/components/EditPassword.vue";
 import AuthorizeEmployee from "@/components/AuthorizeEmployee.vue";
 import BuildingSetting from "@/components/BuildingSetting.vue";
 
-const HOST = "http://172.30.6.192:8082";
+const HOST = "http://172.30.6.192:8080";
 
 export default {
   components: {

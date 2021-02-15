@@ -105,7 +105,7 @@ import DepartmentColorChips from "@/components/DepartmentColorChips.vue";
 import ProgressDialog from "@/components/ProgressDialog.vue";
 import { refreshToken } from "../refreshToken.js";
 
-const HOST = "http://172.30.6.192:8082";
+const HOST = "http://172.30.6.192:8080";
 
 export default {
   name: "Hanzari",
