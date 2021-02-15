@@ -8,12 +8,14 @@
             <v-card-title>
               <h4>{{ this.$t("textSelectFloor") }}</h4></v-card-title
             ></v-col
-          ><v-col cols="12" sm="3" style="margin-top: 15px">
+          ><v-col cols="12" sm="3" style="margin-top: 10px;">
+            <div style= "margin-right: 15px;">
             <v-tooltip bottom>
               <template v-slot:activator="{ on, attrs }">
                 <v-btn
-                  style="float: right; width: 30px"
-                  text
+                  style="float: right;"
+                  icon
+                  color="black"
                   @click="getSettings"
                   v-bind="attrs"
                   v-on="on"
@@ -22,6 +24,7 @@
               >
               <span>{{ this.$t("tooltipFloorSettingBtn") }}</span>
             </v-tooltip>
+            </div>
           </v-col>
         </v-row>
 
@@ -55,22 +58,25 @@
         <v-card-title>
           <h4>{{ this.$t("textSettingImage") }}</h4></v-card-title
         >
-        <div class="mx-3">
           <v-row>
             <v-col cols="12" sm="9">
+              <div style= "margin-left:15px;">
               <v-card :height="30">
                 <div class="mx-auto text-center">
                   {{ currentFloorImageName }}
                 </div>
               </v-card>
+              </div>
             </v-col>
             <v-col cols="12" sm="3">
+              <div style= "margin-right: 15px;">
               <input
                 v-show="false"
                 ref="upload"
                 type="file"
                 @change="changeImageFile"
               />
+              
               <v-btn
                 color="#2c4f91"
                 style="
@@ -82,9 +88,9 @@
                 @click="uploadImage()"
                 ><h4>{{ this.$t("btnUploadImage") }}</h4></v-btn
               >
+              </div>
             </v-col>
           </v-row>
-        </div>
       </div>
 
       <!-- 세팅 들어간 이후-->
@@ -94,12 +100,14 @@
             <v-card-title>
               <h4>{{ this.$t("textSettingFloor") }}</h4></v-card-title
             > </v-col
-          ><v-col cols="12" sm="3" style="margin-top: 15px">
-            <v-btn style="float: right; width: 30px" text
-              ><v-icon size="30px" dark @click="addFloor"
+          ><v-col cols="12" sm="3" style="margin-top: 10px">
+            <div style= "margin-right: 15px;">
+            <v-btn icon color="black" style="float: right;" text
+              ><v-icon size="30px" @click="addFloor"
                 >add_circle</v-icon
               ></v-btn
             >
+            </div>
           </v-col>
         </v-row>
 
@@ -107,37 +115,40 @@
           <v-row
             v-for="floorObject of this.settingsFloorList"
             :key="floorObject.floorId"
-            class="d-flex child-flex"
-            style="padding-left: 15px"
           >
-            <v-col cols="9">
+            <v-col cols="12" sm="9">
+              <div style= "margin-left: 15px;">
               <v-text-field
                 name="editFloorNameInSetting[]"
                 v-model="editFloorNameInSetting[floorObject.floorId]"
                 :label="$t('textFieldLabelEditFloorName')"
                 solo
                 dense
+                style="height:45px"
               ></v-text-field>
+              </div>
             </v-col>
-
-            <v-col cols="2" style="padding-left: 25px">
-              <v-btn text @click="removeFloor(floorObject.floorId)"
+  
+            <v-col cols="12" sm="3">
+              <div style="margin-right: 15px;">
+              <v-btn icon color="black" @click="removeFloor(floorObject.floorId)"
                 ><v-icon large>delete</v-icon></v-btn
               >
+              </div>
             </v-col>
           </v-row>
         </div>
 
-        <div style="text-align: right; margin-top: 50px">
+        <div style="margin-left: 15px; margin-right: 15px; text-align: right; margin-top: 50px">
           <v-btn
             @click="cancelSettings"
-            style="height: 30px; font-size: 12px"
+            style="float: left; height: 30px; font-size: 12px"
             >{{ this.$t("btnCancel") }}</v-btn
           >
           <v-btn
             @click="confirmSettings"
             color="#2c4f91"
-            style="height: 30px; color: white; font-size: 12px"
+            style="float: right; height: 30px; color: white; font-size: 12px"
             >{{ this.$t("btnConfirm") }}</v-btn
           >
         </div>

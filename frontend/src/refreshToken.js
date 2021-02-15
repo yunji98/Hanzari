@@ -27,7 +27,12 @@ export async function refreshToken() {
                 console.log(errorStatus)
             });
             if (errorStatus === 417) {
-                console.log("!!!refresh token 만료되어서 로그아웃함!!!")
+                console.log("!!!417 에러 refresh token 만료되어서 로그아웃함!!!")
+                store.commit("logout");
+                router.replace("/");
+            }
+            if (errorStatus === 500) {
+                console.log("!!!500 에러 refresh token 만료되어서 로그아웃함!!!")
                 store.commit("logout");
                 router.replace("/");
             }

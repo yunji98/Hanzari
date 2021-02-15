@@ -1,7 +1,6 @@
 <template>
   <v-card flat>
     <v-card-title>
-      <div class="mx-1"></div>
       <h4>{{ this.$t("searchEmployee") }}</h4>
     </v-card-title>
     <v-card-title>
@@ -16,17 +15,19 @@
       ></v-text-field>
     </v-card-title>
 
+    <div style="margin-left: 15px; margin-right: 15px;font-size:10px">
     <v-data-table
       :headers="headers"
       :items="allEmployeeSeat"
       :search="search"
-      height="600px"
+      height="500px"
       class="elevation-1"
       :no-data-text="$t('dataTabelNoDataTextSeat')"
       :footer-props="{
         'items-per-page-text': $t('dataTabelPerPageTextSeat'),
         'items-per-page-options': [5, 10],
       }"
+      
     >
       <template v-slot:item="row">
         <tr>
@@ -46,6 +47,7 @@
         </tr>
       </template>
     </v-data-table>
+    </div>
   </v-card>
 </template>
 
@@ -75,19 +77,11 @@ export default {
       textFocusStatus: false,
     };
   },
-  watch: {
-    eachEmployeeSeatMapToManageSearch: {
-      deep: true,
-      handler() {
-        console.log("eachEmployeeSeatMap changed!");
-        this.allEmployeeSeatMap = this.eachEmployeeSeatMapToManageSearch;
-        this.getAllEmployeeSeats();
-      },
-    },
-  },
   created() {
     // created 시에는 Tabs.vue에서 eachEmployeeSeatMapToManageSearch 받아오고 이후부터는 본인 이벤트로 받아옴
     this.allEmployeeSeatMap = this.eachEmployeeSeatMapToManageSearch;
+
+    eventBus.$emit("destroyTabEventFromManageSearch");
 
     //매핑된 사원 추가시 검색 탭으로 사원 맵 받기 위한 event
     eventBus.$on("pushEachEmployeeSeatMap", (eachEmployeeSeatMap) => {

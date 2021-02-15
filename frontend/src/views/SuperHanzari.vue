@@ -151,7 +151,7 @@ import { refreshToken } from "@/refreshToken.js";
 
 import ProgressDialog from "@/components/ProgressDialog.vue";
 
-const HOST = "http://172.30.6.192:8082";
+const HOST = "http://172.30.6.192:8080";
 
 const Authority = {
   Viewer: "뷰어",

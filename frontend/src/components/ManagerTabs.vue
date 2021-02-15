@@ -21,12 +21,16 @@
           <v-card-text>
             <component
               v-bind:is="item.content"
+              :manageSeatTabOfSelectedSeatsComponentStatusToManageSeats="
+                manageSeatTabOfSelectedSeatsComponentStatusToManageSeats
+              "
               :eachEmployeeSeatMapToManageSearch="
                 eachEmployeeSeatMapToManageSearch
               "
               :selectedFloorObjectToManageSeats="
                 selectedFloorObjectToManageSeats
               "
+              :memoCommentToManageSeats="memoCommentToManageSeats"
             ></component>
           </v-card-text>
         </v-card>
@@ -50,6 +54,10 @@ export default {
   data() {
     return {
       tab: null,
+
+      manageSeatTabOfSelectedSeatsComponentStatusToManageSeats: false,
+
+      memoCommentToManageSeats: null,
 
       eachEmployeeSeatMapToManageSearch: null,
       selectedFloorObjectToManageSeats: null,
@@ -85,6 +93,24 @@ export default {
     //선택한 층에 대한 값 받아와서 층 전환하기 위한 event
     eventBus.$on("pushSelectedFloorObject", (floorObject) => {
       this.selectedFloorObjectToManageSeats = floorObject;
+    });
+    //초기에 두번째 탭 선택 안했을때도 선택한 자리에 대해서 뜨는 탭을 보여지게 하기 위함
+    eventBus.$on(
+      "pushManageSeatTabOfSelectedSeatsComponentStatus",
+      (manageSeatTabOfSelectedSeatsComponentStatus) => {
+        this.manageSeatTabOfSelectedSeatsComponentStatusToManageSeats = manageSeatTabOfSelectedSeatsComponentStatus;
+        if (manageSeatTabOfSelectedSeatsComponentStatus) {
+          this.tab = 1;
+        }
+        if (manageSeatTabOfSelectedSeatsComponentStatus === false) {
+          this.seatHeight = null;
+          this.seatWidth = null;
+        }
+      }
+    );
+    //초기에 두번째 탭 선택 안했을때도 선택한 자리에 대해서 메모를 보여지게 하기 위함
+    eventBus.$on("pushMemoComment", (memoComment) => {
+      this.memoCommentToManageSeats = memoComment;
     });
   },
   beforeDestroy() {

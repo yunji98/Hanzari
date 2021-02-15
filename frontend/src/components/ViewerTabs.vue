@@ -24,6 +24,10 @@
               :eachEmployeeSeatMapToManageSearch="
                 eachEmployeeSeatMapToManageSearch
               "
+              :manageSeatTabOfSelectedSeatsComponentStatusToManageSeats="
+                manageSeatTabOfSelectedSeatsComponentStatusToManageSeats
+              "
+              :memoCommentToManageSeats="memoCommentToManageSeats"
             ></component>
           </v-card-text>
         </v-card>
@@ -35,18 +39,22 @@
 <script>
 import { eventBus } from "../main";
 import ViewerManageFloors from "@/components/ViewerManageFloors.vue";
+import ViewerManageSeats from "@/components/ViewerManageSeats.vue";
 import ManageSearch from "@/components/ManageSearch.vue";
 
 export default {
   components: {
     ViewerManageFloors,
+    ViewerManageSeats,
     ManageSearch,
   },
   data() {
     return {
       tab: null,
-
+      manageSeatTabOfSelectedSeatsComponentStatusToManageSeats: false,
       eachEmployeeSeatMapToManageSearch: null,
+
+      memoCommentToManageSeats: null,
 
       items: [
         {
@@ -56,8 +64,14 @@ export default {
           content: "ViewerManageFloors",
         },
         {
-          icon: "search",
+          icon: "event_seat",
           index: 1,
+          title: this.$i18n.t("settingSeat"),
+          content: "ViewerManageSeats",
+        },
+        {
+          icon: "search",
+          index: 2,
           title: this.$i18n.t("search"),
           content: "ManageSearch",
         },
@@ -65,14 +79,39 @@ export default {
     };
   },
   created() {
+    //초기에 두번째 탭 선택 안했을때도 선택한 자리에 대해서 뜨는 탭을 보여지게 하기 위함
+    eventBus.$on(
+      "pushManageSeatTabOfSelectedSeatsComponentStatus",
+      (manageSeatTabOfSelectedSeatsComponentStatus) => {
+        this.manageSeatTabOfSelectedSeatsComponentStatusToManageSeats = manageSeatTabOfSelectedSeatsComponentStatus;
+        if (manageSeatTabOfSelectedSeatsComponentStatus) {
+          this.tab = 1;
+        }
+      }
+    );
+
+    //초기에 두번째 탭 선택 안했을때도 선택한 자리에 대해서 메모를 보여지게 하기 위함
+    eventBus.$on("pushMemoComment", (memoComment) => {
+      this.memoCommentToManageSeats = memoComment;
+    });
+
     //매핑된 사원 추가시 검색 탭으로 사원 맵 받기 위한 event
     eventBus.$on("pushEachEmployeeSeatMap", (eachEmployeeSeatMap) => {
       console.log(eachEmployeeSeatMap);
       this.eachEmployeeSeatMapToManageSearch = eachEmployeeSeatMap;
     });
+
+    eventBus.$on("destroyTabEventFromManageSearch", () => {
+      this.destroyManageSearchEvent();
+    });
+  },
+  methods: {
+    destroyManageSearchEvent() {
+      eventBus.$off("pushEachEmployeeSeatMap");
+    },
   },
   beforeDestroy() {
-    eventBus.$off("pushEachEmployeeSeatMap");
+    eventBus.$off("destroyTabEventFromManageSearch");
   },
 };
 </script>

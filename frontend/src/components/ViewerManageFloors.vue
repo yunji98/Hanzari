@@ -45,23 +45,14 @@ export default {
   name: "ViewerManageFloors",
   data() {
     return {
-      length: null,
-
       allFloorList: [],
 
       currentSelectedFloorObject: null,
 
       clickFloorIndexes: null,
-
-      allSeatMap: null,
-
-      latestFloorSeatList: this.$store.state.getStore.latestFloorSeatList,
-      otherFloorSeatMap: this.$store.state.getStore.otherFloorsSeatMap,
     };
   },
   created() {
-    this.allSeatMap = new Map();
-
     if (
       this.$store.state.getStore.allFloor &&
       this.$store.state.getStore.allFloor.length
@@ -69,31 +60,11 @@ export default {
       this.currentSelectedFloorObject = this.$store.state.getStore.allFloor[
         this.$store.state.getStore.allFloor.length - 1
       ];
-      this.allFloorList = this.$store.state.getStore.allFloor;
-      this.length = this.$store.state.getStore.allFloor.length;
+      this.allFloorList = this.$store.state.getStore.allFloor.slice();
+      let tempList = this.allFloorList.slice();
+      this.allFloorList = tempList.reverse();
       this.clickFloorIndexes = this.currentSelectedFloorObject.floorId;
     }
-
-    if (this.latestFloorSeatList && this.latestFloorSeatList.length) {
-      let newSeatsList = this.latestFloorSeatList;
-      let floorId = this.currentSelectedFloorObject.floorId;
-      this.allSeatMap.set(floorId, newSeatsList);
-    }
-
-    if (this.otherFloorSeatMap && this.otherFloorSeatMap.size) {
-      let keys = [];
-      keys = Array.from(this.otherFloorSeatMap.keys());
-
-      for (let i = 0; i < keys.length; i++) {
-        let newSeatsList = this.otherFloorSeatMap.get(keys[i]);
-        let floorId = keys[i];
-        this.allSeatMap.set(floorId, newSeatsList);
-      }
-    }
-
-    eventBus.$on("pushAllSeatMap", (allSeatMap) => {
-      this.allSeatMap = allSeatMap;
-    });
 
     eventBus.$on("pushFloorOfSeat", (floorId) => {
       for (let i = 0; i < this.allFloorList.length; i++) {
@@ -104,7 +75,6 @@ export default {
     });
   },
   beforeDestroy() {
-    eventBus.$off("pushAllSeatMap");
     eventBus.$off("pushFloorOfSeat");
   },
   methods: {
@@ -114,7 +84,6 @@ export default {
 
       this.currentSelectedFloorObject = floorObject;
       eventBus.$emit("pushSelectedFloorObject", floorObject);
-      eventBus.$emit("sendFlowInformationTable", floorObject);
     },
   },
 };

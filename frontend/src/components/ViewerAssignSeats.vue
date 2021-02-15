@@ -1,12 +1,21 @@
 <template>
-  <div>
-    <v-toolbar color="#2c4f91" dark>
+  <div id="assignSeatsScreen">
+    <v-toolbar id="toolbar" color="#2c4f91" dark>
       <v-spacer></v-spacer>
       <h3>
         <span>{{ $store.state.buildingStore.building.buildingName }}</span>
       </h3>
       <v-spacer></v-spacer>
-      <v-toolbar-items class="hidden-sm-and-down">
+      <v-toolbar-items id="toolBarItems" class="hidden-sm-and-down">
+        <v-tooltip bottom>
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn text v-bind="attrs" v-on="on" @click="captureBtn">
+              <v-icon size="30px">photo</v-icon>
+            </v-btn>
+          </template>
+          <span>{{ this.$t("tooltipCaptureBtn") }}</span>
+        </v-tooltip>
+
         <v-tooltip bottom>
           <template v-slot:activator="{ on, attrs }">
             <v-btn text v-bind="attrs" v-on="on" @click="clickPrintBtn">
@@ -15,98 +24,49 @@
           >
           <span>{{ this.$t("tooltipPrintBtn") }}</span>
         </v-tooltip>
-        <v-menu bottom rounded offset-y>
-          <template v-slot:activator="{ on: onCard }">
-            <v-btn text v-on="onCard">
-              <v-icon size="30px">settings_applications</v-icon>
-            </v-btn>
-          </template>
-          <v-card min-width="250px">
-            <v-list-item-content class="justify-center">
-              <div class="mx-auto text-center">
-                <v-row>
-                  <v-col cols="12" sm="3"
-                    ><v-tooltip bottom>
-                      <template v-slot:activator="{ on, attrs }">
-                        <v-icon size="30px" v-bind="attrs" v-on="on"
-                          >preview</v-icon
-                        >
-                      </template>
-                      <span>{{ viewSeatInfiTooltipText }}</span>
-                    </v-tooltip> </v-col
-                  ><v-col cols="12" sm="8">
-                    <v-radio-group
-                      @change="viewSeatInfo"
-                      v-model="viewSeatStatus"
-                      row
-                    >
-                      <v-radio
-                        :label="$t('contextMenuViewSeatAboutEmployeeName')"
-                        :value="0"
-                      ></v-radio>
-                      <v-radio
-                        :label="$t('contextMenuViewSeatAboutNumber')"
-                        :value="1"
-                      ></v-radio>
-                      <v-radio
-                        :label="$t('contextMenuViewSeatAboutDepartment')"
-                        :value="2"
-                      ></v-radio>
-                      <v-radio
-                        :label="$t('contextMenuViewSeatAboutName')"
-                        :value="3"
-                      ></v-radio> </v-radio-group></v-col
-                ></v-row>
-
-                <v-divider class="mx-4"></v-divider>
-                <v-row>
-                  <v-col cols="12" sm="3"
-                    ><v-tooltip bottom>
-                      <template v-slot:activator="{ on, attrs }">
-                        <v-icon size="30px" v-bind="attrs" v-on="on"
-                          >opacity</v-icon
-                        ></template
-                      >
-                      <span>{{ this.$t("tooltipSetOpacity") }}</span>
-                    </v-tooltip> </v-col
-                  ><v-col cols="12" sm="7">
-                    <v-slider
-                      v-model="seatOpacity"
-                      @change="changeSeatOpacity"
-                      :step="0.25"
-                      :min="0"
-                      :max="1"
-                      class="align-center"
-                    ></v-slider
-                  ></v-col>
-                </v-row>
-              </div>
-            </v-list-item-content>
-          </v-card>
-        </v-menu>
       </v-toolbar-items>
     </v-toolbar>
-    <v-toolbar-items>
+    <div id="canvas-container">
+      <canvas
+        ref="canvas"
+        class="canvas"
+        id="canvas"
+        height="770px"
+        width="1150px"
+        style="text-align: center"
+      ></canvas>
       <v-btn
-        color="blue"
-        v-if="zoomStatus"
+        id="zoomInButton"
+        v-on:click="zoomStatus = false"
+        @click="clickZoomInButton"
+        fab
+        small
+      >
+        <v-icon medium>add</v-icon>
+      </v-btn>
+      <v-btn
+        id="zoomOutButton"
+        v-on:click="zoomStatus = false"
+        @click="clickZoomOutButton"
+        fab
+        small
+      >
+        <v-icon medium>remove</v-icon>
+      </v-btn>
+      <v-btn
+        id="resetZoomButton"
         v-on:click="zoomStatus = false"
         @click="clickResetToRatioBtn"
-        text
+        fab
+        small
       >
-        <v-icon color="blue" x-large>zoom_out</v-icon>
-        {{ this.$t("resetRatio") }}
+        <v-icon medium>my_location</v-icon>
       </v-btn>
-      <v-spacer></v-spacer>
-    </v-toolbar-items>
-    <canvas
-      ref="canvas"
-      class="canvas"
-      id="canvas"
-      height="770px"
-      width="1150px"
-      style="text-align: center"
-    ></canvas>
+      <v-btn id="lockButton" @click="clickLockBtn" fab small>
+        <v-icon v-if="lockStatus === false" medium>lock</v-icon>
+        <v-icon v-if="lockStatus === true" medium>no_encryption</v-icon>
+      </v-btn>
+    </div>
     <v-tooltip
       top
       v-model="toolTipStatus"
@@ -120,7 +80,11 @@
 </template>
 
 <script>
+import html2canvas from "html2canvas";
 import { eventBus } from "../main.js";
+
+const SCALE_FACTOR = 1.2;
+
 export default {
   name: "ViewerAttachSeats",
   data() {
@@ -130,6 +94,7 @@ export default {
       //줌
       zoom: 1,
       zoomStatus: false,
+      lockStatus: false,
       moveStatus: false,
       panning: null,
 
@@ -143,19 +108,24 @@ export default {
 
       currentSelectedFloorObject: null,
 
+      //DB로부터 불러온 List OR Map
+      allFloorList: this.$store.state.getStore.allFloor,
+      allDepartmentObjectList: this.$store.state.getStore.allDepartment, // 부서 객체 리스트
+
       latestFloorImageFromDb: this.$store.state.getStore.latestFloorImage,
       otherFloorImageFromDb: this.$store.state.getStore.otherFloorsImageList,
 
       latestFloorSeatListFromDb: this.$store.state.getStore.latestFloorSeatList,
       otherFloorSeatListFromDb: this.$store.state.getStore.otherFloorsSeatMap,
 
-      allFloorList: this.$store.state.getStore.allFloor,
-      allDepartmentObjectList: this.$store.state.getStore.allDepartment, // 부서 객체 리스트
-
-      allImageMap: null, //이미지 Map<FloorId, ImgPath>
+      //가공되어 필요한 List OR Map
+      allImageMap: null, //모든 이미지 저장과 로드할 수 있는 Map <FloorId, ImgPath>
       allDepartmentMap: null, //부서이름, 부서아이디, 부서색상값을 저장할 수 있는 Map <FloorId, DepartmentObject>
-      allSeatMap: null, //자리 Map<층이름, 자리리스트>
-      eachEmployeeSeatMap: null, //each Employee's seats map
+      allSeatMap: null, //자리 Map <FloorId, 자리리스트>
+      eachEmployeeSeatMap: null, //각 사원의 자리 Map <EmployeeId, 자리리스트>
+
+      //캔버스 이미지
+      allCanvasImageMap: null,
 
       toolTipStatus: false,
       toolTipXLocation: 100,
@@ -164,7 +134,12 @@ export default {
       toolTipText: null,
       viewSeatInfiTooltipText: this.$i18n.t("tooltipViewSeatInfo"),
 
-      viewSeatStatus: 0,
+      //캔버스의 기본 스케일 값
+      canvasScale: 1,
+      canvasOriginalHeight: 843,
+      canvasOriginalWidth: 1453,
+
+      tabFocus: false,
     };
   },
   created() {
@@ -216,6 +191,18 @@ export default {
       );
     });
 
+    //자리 상세정보 라디오에서 선택한 값을 받기 위한 event
+    eventBus.$on("pushViewSeatInfo", (viewSeatStatus) => {
+      this.viewSeatStatus = viewSeatStatus;
+      this.viewSeatInfo();
+    });
+
+    //자리 불투명도 값을 받기 위한 event
+    eventBus.$on("pushSeatOpacity", (seatOpacity) => {
+      this.seatOpacity = seatOpacity;
+      this.changeSeatOpacity();
+    });
+
     //자리 하이라이트 하는 함수를 호출하기 위한 event
     eventBus.$on("showSeatHighlight", (seatObject) => {
       this.showSeatHighlight(seatObject);
@@ -247,27 +234,90 @@ export default {
           selection: false,
         });
 
-        this.setMouseWheel();
+        let toolBarItemsHeight = document
+          .getElementById("toolbar")
+          .getBoundingClientRect().height;
+
+        let originalAssignSeatsScreenWidth = document
+          .getElementById("toolbar")
+          .getBoundingClientRect().width;
+        let originalAssignSeatsScreenHeight =
+          window.innerHeight - toolBarItemsHeight - 30;
+
+        //브라우저 창의 크기가 원본크기보다 작게 로드할때
+        //screenLeft, top은 브라우저창과 컴퓨터화면 사이의 간격임.
+        if (window.screenLeft > 0 || window.screenTop > 0) {
+          let zoom;
+
+          if (1453 < originalAssignSeatsScreenWidth) {
+            zoom = originalAssignSeatsScreenHeight / 843;
+
+            if (zoom * 1453 > originalAssignSeatsScreenWidth) {
+              zoom = originalAssignSeatsScreenWidth / 1453;
+            }
+          } else {
+            zoom = originalAssignSeatsScreenWidth / 1453;
+
+            if (zoom * 843 > originalAssignSeatsScreenHeight) {
+              zoom = originalAssignSeatsScreenHeight / 843;
+            }
+          }
+          this.canvasScale = zoom;
+
+          this.floorCanvas.setHeight(
+            this.canvasOriginalHeight * this.canvasScale
+          );
+          this.floorCanvas.setWidth(
+            this.canvasOriginalWidth * this.canvasScale
+          );
+        } else {
+          this.floorCanvas.setHeight(originalAssignSeatsScreenHeight);
+          this.floorCanvas.setWidth(originalAssignSeatsScreenWidth - 450);
+        }
+
+        this.floorCanvas.on("mouse:down", (event) => {
+          this.panning = true;
+          if (this.lockStatus === true) {
+            this.floorCanvas.selection = false;
+          } else {
+            this.floorCanvas.selection = true;
+          }
+          if (event.button === 1) {
+            if (event.target) {
+            } else {
+              eventBus.$emit("pushMemoComment", null);
+              eventBus.$emit(
+                "pushManageSeatTabOfSelectedSeatsComponentStatus",
+                false
+              );
+            }
+          }
+        });
+
+        this.floorCanvas.on("mouse:up", (event) => {
+          this.panning = false;
+          if (this.lockStatus === true) {
+            this.floorCanvas.selection = false;
+          } else {
+            this.floorCanvas.selection = true;
+          }
+        });
         this.floorCanvas.on("mouse:move", (event) => {
-          if (this.moveStatus === true) {
+          if (this.lockStatus === true) {
+            this.setMoveCursor();
             if (this.panning && event && event.e) {
               let delta = new fabric.Point(
                 event.e.movementX / 5,
                 event.e.movementY / 5
               );
+              //마우스 움직일 때 캔버스 움직이기
               this.floorCanvas.relativePan(delta);
               this.zoomStatus = true;
             }
           }
         });
-        this.floorCanvas.on("mouse:up", (event) => {
-          this.panning = false;
-          this.floorCanvas.selection = false;
-        });
-        this.floorCanvas.on("mouse:down", (event) => {
-          this.panning = true;
-          this.floorCanvas.selection = false;
-        });
+        this.setMouseWheel(); //마우스 휠과 Ctrl 키로 zoom in/out
+        this.whenResizingWindow(); //브라우저 창의 크기를 조절할때 (캔버스 확장/축소됨)
       }
     },
     setMouseWheel() {
@@ -303,9 +353,104 @@ export default {
         opt.e.stopPropagation();
       });
     },
+    setDefaultCursor() {
+      this.floorCanvas.defaultCursor = "default";
+    },
+    setMoveCursor() {
+      this.floorCanvas.defaultCursor = "move";
+    },
+    whenResizingWindow() {
+      let originalAssignSeatsScreenWidth = document
+        .getElementById("assignSeatsScreen")
+        .getBoundingClientRect().width;
+
+      let originalAssignSeatsScreenTop = document
+        .getElementById("assignSeatsScreen")
+        .getBoundingClientRect().top;
+      let toolBarItemsHeight = document
+        .getElementById("toolBarItems")
+        .getBoundingClientRect().height;
+
+      let originalAssignSeatsScreenHeight =
+        window.innerHeight -
+        toolBarItemsHeight -
+        toolBarItemsHeight -
+        originalAssignSeatsScreenTop;
+
+      window.onresize = (event) => {
+        let assignSeatsScreenWidth = document
+          .getElementById("assignSeatsScreen")
+          .getBoundingClientRect().width;
+        let assignSeatsScreenTop = document
+          .getElementById("assignSeatsScreen")
+          .getBoundingClientRect().top;
+        let toolBarItemsHeight = document
+          .getElementById("toolbar")
+          .getBoundingClientRect().height;
+
+        this.floorCanvas.setHeight(
+          window.innerHeight - toolBarItemsHeight - 30
+        );
+        this.floorCanvas.setWidth(assignSeatsScreenWidth);
+        this.floorCanvas.requestRenderAll();
+      };
+    },
+    setCanvasZoom(scaleFactor) {
+      this.canvasScale = this.canvasScale * scaleFactor;
+      this.floorCanvas.setZoom(this.canvasScale);
+    },
+    clickZoomOutButton() {
+      this.setCanvasZoom(1 / SCALE_FACTOR);
+    },
+    clickZoomInButton() {
+      this.setCanvasZoom(SCALE_FACTOR);
+    },
     clickResetToRatioBtn() {
+      let toolBarItemsHeight = document
+        .getElementById("toolbar")
+        .getBoundingClientRect().height;
+
+      let originalAssignSeatsScreenWidth = document
+        .getElementById("toolbar")
+        .getBoundingClientRect().width;
+      let originalAssignSeatsScreenHeight =
+        window.innerHeight - toolBarItemsHeight - 30;
+
+      let zoom;
+
+      if (1453 < originalAssignSeatsScreenWidth) {
+        zoom = originalAssignSeatsScreenHeight / 843;
+
+        if (zoom * 1453 > originalAssignSeatsScreenWidth) {
+          zoom = originalAssignSeatsScreenWidth / 1453;
+        }
+      } else if (1453 > originalAssignSeatsScreenWidth) {
+        zoom = originalAssignSeatsScreenWidth / 1453;
+
+        if (zoom * 843 > originalAssignSeatsScreenHeight) {
+          zoom = originalAssignSeatsScreenHeight / 843;
+        }
+      } else if (1453 === originalAssignSeatsScreenWidth) {
+        zoom = 1;
+      }
+      this.canvasScale = zoom;
+      console.log(this.canvasScale);
+
       this.floorCanvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
-      this.moveStatus = false;
+      this.floorCanvas.setZoom(this.canvasScale);
+
+      this.lockStatus = false;
+      this.floorCanvas.selection = true;
+      this.setDefaultCursor();
+    },
+    clickLockBtn() {
+      if (!this.lockStatus) {
+        this.lockStatus = true;
+        this.setMoveCursor();
+      } else {
+        this.lockStatus = false;
+        this.setDefaultCursor();
+      }
     },
     changeFloor() {
       this.floorCanvas
@@ -316,6 +461,7 @@ export default {
         });
       this.floorCanvas.discardActiveObject();
       this.floorCanvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
+      this.lockStatus = false;
       this.moveStatus = false;
       this.changeSeatOpacity();
       this.viewSeatInfo();
@@ -894,11 +1040,13 @@ export default {
         left: seat.x,
         top: seat.y,
         angle: seat.degree,
+        comment: seat.comment,
         isObjFromDB: seat.isObjFromDB,
         httpRequestPostStatus: seat.httpRequestPostStatus,
       });
 
       this.setToolTipForSeat(group);
+      this.showMemo(group);
 
       return group;
     },
@@ -957,6 +1105,13 @@ export default {
       }
 
       this.toolTipStatus = true;
+    },
+    showMemo(group) {
+      group.on("mousedown", () => {
+        eventBus.$emit("pushMemoComment", group.comment);
+
+        eventBus.$emit("pushManageSeatTabOfSelectedSeatsComponentStatus", true);
+      });
     },
     loadLatestFloor() {
       //현재 층 이미지 로드
@@ -1048,6 +1203,28 @@ export default {
         eventBus.$emit("pushEachEmployeeSeatMap", this.eachEmployeeSeatMap);
       }
     },
+    downloadURI(uri, name) {
+      var link = document.createElement("a");
+      if (typeof link.download === "string") {
+        link.href = uri;
+        link.download = name;
+        //console.log(link);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else {
+        window.open(uri);
+      }
+    },
+    captureBtn() {
+      html2canvas(document.querySelector("#canvas")).then((canvas) => {
+        let dataUrl = document.getElementById("canvas").toDataURL();
+        let dataName = this.allImageMap.get(
+          this.currentSelectedFloorObject.floorId
+        ).imgFileName;
+        this.downloadURI(dataUrl, dataName);
+      });
+    },
     clickPrintBtn() {
       let dataUrl = document.getElementById("canvas").toDataURL();
 
@@ -1108,15 +1285,33 @@ export default {
 </script>
 
 <style scoped>
-.canvas {
+#canvas-container {
+  position: relative;
+}
+#canvas {
   border: 1px solid #000;
   background: white;
-  width: 75%;
+  width: 100%;
   height: 100%;
 }
-ul {
-  padding: 0px;
-  margin: 0px;
-  display: block;
+#zoomInButton {
+  top: 1.5%;
+  left: 1%;
+  position: absolute;
+}
+#zoomOutButton {
+  top: 7.5%;
+  left: 1%;
+  position: absolute;
+}
+#resetZoomButton {
+  top: 13.5%;
+  left: 1%;
+  position: absolute;
+}
+#lockButton {
+  bottom: 1.5%;
+  left: 1%;
+  position: absolute;
 }
 </style>

@@ -1,23 +1,24 @@
 <template>
-  <v-card flat color="transparent">
-    <div>
-      <v-icon large style="float: right" @click="changeBackPage">clear</v-icon>
-      <v-card-title>
-        <v-text-field
-          v-model="search"
-          append-icon="mdi-magnify"
-          :label="$t('textFieldLabelSearchSeat')"
-          single-line
-          hide-details
-          @focus="onFocusInText"
-          @blur="outFocusInText"
-        ></v-text-field>
-      </v-card-title>
+  <div>
+    <v-card-title>
+      <h4>{{ this.$t("btnMappingEmployee") }}</h4>
+      <v-text-field
+        v-model="search"
+        append-icon="mdi-magnify"
+        :label="$t('textFieldLabelSearchSeat')"
+        single-line
+        hide-details
+        @focus="onFocusInText"
+        @blur="outFocusInText"
+      ></v-text-field
+    ></v-card-title>
+
+    <div style="margin-left: 15px; margin-right: 15px">
       <v-data-table
         :headers="headers"
         :items="this.$store.state.getStore.allEmployee"
         :search="search"
-        height="700px"
+        height="450px"
         class="elevation-1"
         :no-data-text="$t('dataTabelNoDataTextEmployee')"
         :footer-props="{
@@ -26,14 +27,14 @@
       >
         <template v-slot:item="row">
           <tr>
-            <td>{{ row.item.name }}</td>
-            <td>{{ row.item.department }}</td>
-            <td>{{ row.item.number }}</td>
+            <td style="font-size: 12px">{{ row.item.name }}</td>
+            <td style="font-size: 12px">{{ row.item.department }}</td>
+            <td style="font-size: 12px">{{ row.item.number }}</td>
             <td>
               <v-btn
                 outlined
                 color="#2c4f91"
-                style="height: 30px; font-size: 12px"
+                style="height: 30px; font-size: 12px; width: 50px"
                 id="mappingEmployeeToVacantButton"
                 @click="clickEmployeeToMapping(row.item)"
                 >{{ $t("mapping") }}</v-btn
@@ -41,13 +42,9 @@
             </td>
           </tr>
         </template>
-        <template v-slot:pageText="props">
-          ITEMS {{ props.pageStart }} - {{ props.pageStop }} OF
-          {{ props.itemsLength }}
-        </template>
       </v-data-table>
     </div>
-  </v-card>
+  </div>
 </template>
 
 <script>
@@ -83,9 +80,6 @@ export default {
     },
     clickEmployeeToMapping(clickedEmployee) {
       eventBus.$emit("mappingEmployeeToVacant", clickedEmployee);
-    },
-    changeBackPage() {
-      eventBus.$emit("pushMappingEmployeeComponentStatus", false);
     },
   },
 };

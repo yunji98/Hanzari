@@ -1,7 +1,7 @@
 import axios from "axios";
 import { refreshToken } from '../../refreshToken.js'
 
-const HOST = "http://172.30.6.192:8082";
+const HOST = "http://172.30.6.192:8080";
 
 const deleteStore = {
     state: {
