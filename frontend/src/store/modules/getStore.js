@@ -95,6 +95,7 @@ const getStore = {
                         let newBuildingObject = {};
                         newBuildingObject.buildingId = response.data[i].building_id;
                         newBuildingObject.buildingName = response.data[i].building_name;
+                        newBuildingObject.buildingOrder = response.data[i].building_order;
                         newBuildingObject.floorCnt = response.data[i].floorCnt;
 
                         buildingList.push(newBuildingObject);
@@ -266,6 +267,7 @@ const getStore = {
                         newFloorObject.floorName = response.data[i].floor_name;
                         newFloorObject.buildingId = response.data[i].building_id;
                         newFloorObject.floorOrder = response.data[i].floor_order;
+                        newFloorObject.maxSeatNumber = response.data[i].max_num_seat;
                         newFloorObject.isObjFromDB = true;
                         newFloorObject.httpRequestPostStatus = false;
 
@@ -276,6 +278,7 @@ const getStore = {
                         floorIdList.push(allFloorList[i].floorId);
                     }
                     console.log("called - 층 호출 끝")
+                    console.log(allFloorList);
                     commit('SET_FLOORS', allFloorList)
                     commit('SET_FLOORIDLIST', floorIdList)
                 }

@@ -127,6 +127,7 @@ export default {
       //캔버스 이미지
       allCanvasImageMap: null,
 
+      toolTipSwitchStatus: true,
       toolTipStatus: false,
       toolTipXLocation: 100,
       toolTipYLocation: 100,
@@ -191,16 +192,15 @@ export default {
       );
     });
 
+    //툴팁 껐다 켰다 할 수 있는 event
+    eventBus.$on("pushShowToolTipForSeatStatus", (switchStatus) => {
+      this.toolTipSwitchStatus = switchStatus;
+    });
+
     //자리 상세정보 라디오에서 선택한 값을 받기 위한 event
     eventBus.$on("pushViewSeatInfo", (viewSeatStatus) => {
       this.viewSeatStatus = viewSeatStatus;
       this.viewSeatInfo();
-    });
-
-    //자리 불투명도 값을 받기 위한 event
-    eventBus.$on("pushSeatOpacity", (seatOpacity) => {
-      this.seatOpacity = seatOpacity;
-      this.changeSeatOpacity();
     });
 
     //자리 하이라이트 하는 함수를 호출하기 위한 event
@@ -294,7 +294,7 @@ export default {
           }
         });
 
-        this.floorCanvas.on("mouse:up", (event) => {
+        this.floorCanvas.on("mouse:up", () => {
           this.panning = false;
           if (this.lockStatus === true) {
             this.floorCanvas.selection = false;
@@ -463,7 +463,6 @@ export default {
       this.floorCanvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
       this.lockStatus = false;
       this.moveStatus = false;
-      this.changeSeatOpacity();
       this.viewSeatInfo();
 
       let eachfloorSeatList = this.getEachFloorSeatList(
@@ -601,19 +600,6 @@ export default {
         },
         { crossOrigin: "Anonymous" }
       );
-    },
-    //투명도 조절
-    changeSeatOpacity() {
-      let eachFloorSeatList = this.getEachFloorSeatList(
-        this.currentSelectedFloorObject.floorId
-      );
-      for (let i = 0; i < eachFloorSeatList.length; i++) {
-        console.log(eachFloorSeatList[i]);
-        eachFloorSeatList[i].item(0).set("opacity", this.seatOpacity);
-        eachFloorSeatList[i].item(1).set("opacity", this.seatOpacity);
-        this.floorCanvas.renderAll();
-      }
-      this.floorCanvas.renderAll();
     },
     //각 층의 도형 리스트 반환하기
     getEachFloorSeatList: function (floor) {
@@ -1052,30 +1038,32 @@ export default {
     },
     setToolTipForSeat(group) {
       group.on("mouseover", (event) => {
-        let group = event.target;
-        if (group != null) {
-          let posX = event.e.clientX;
-          let posY = event.e.clientY;
+        if (this.toolTipSwitchStatus) {
+          let group = event.target;
+          if (group != null) {
+            let posX = event.e.clientX;
+            let posY = event.e.clientY;
 
-          let groupToObject = group.toObject([
-            "employeeId",
-            "employeeName",
-            "employeeDepartment",
-            "employeeNumber",
-          ]);
+            let groupToObject = group.toObject([
+              "employeeId",
+              "employeeName",
+              "employeeDepartment",
+              "employeeNumber",
+            ]);
 
-          this.showToolTip(
-            posX,
-            posY,
-            groupToObject.employeeId,
-            groupToObject.employeeName,
-            groupToObject.employeeDepartment,
-            groupToObject.employeeNumber
-          );
+            this.showToolTip(
+              posX,
+              posY,
+              groupToObject.employeeId,
+              groupToObject.employeeName,
+              groupToObject.employeeDepartment,
+              groupToObject.employeeNumber
+            );
+          }
         }
       });
 
-      group.on("mouseout", (event) => {
+      group.on("mouseout", () => {
         this.toolTipStatus = false;
       });
     },
@@ -1111,6 +1099,7 @@ export default {
         eventBus.$emit("pushMemoComment", group.comment);
 
         eventBus.$emit("pushManageSeatTabOfSelectedSeatsComponentStatus", true);
+        eventBus.$emit("pushShowSeatTabStatus", true);
       });
     },
     loadLatestFloor() {

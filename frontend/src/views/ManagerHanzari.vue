@@ -1,7 +1,7 @@
 <template>
   <v-app id="app">
     <div v-if="this.$store.state.getStore.otherFloorsSeatMap" class="parent">
-      <v-navigation-drawer v-model="leftDrawer" app :width="450">
+      <v-navigation-drawer v-model="leftDrawer" app :width="375">
         <ManagerTabs />
       </v-navigation-drawer>
 
@@ -11,31 +11,23 @@
           dark
           style="background-color: #1c3563"
           @click="leftDrawer = !leftDrawer"
-          v-if="leftDrawer"
-          >keyboard_arrow_left</v-icon
-        >
-        <v-icon
-          size="30px"
-          dark
-          style="background-color: #1c3563"
-          @click="leftDrawer = !leftDrawer"
           v-if="!leftDrawer"
           >keyboard_arrow_right</v-icon
         >
         <v-divider vertical></v-divider>
-        <div class="mx-3">
+        <div class="mx-3" v-if="!leftDrawer">
           <v-toolbar-title>{{ $t("projectName") }}</v-toolbar-title>
         </div>
         <v-spacer></v-spacer>
 
-        <v-btn text disabled id="custom-disabled">{{
+        <v-btn text disabled id="custom-disabled" v-if="!rightDrawer">{{
           this.$store.state.userStore.employeeName + $t("user")
         }}</v-btn>
 
-        <v-divider vertical></v-divider>
+        <v-divider vertical v-if="!rightDrawer"></v-divider>
         <v-btn
           text
-          v-if="saveStatus"
+          v-if="saveStatus && !rightDrawer"
           v-confirm="{
             ok: backToMyPage,
             message: message,
@@ -46,22 +38,17 @@
         >
           {{ $t("backToMyPage") }}
         </v-btn>
-        <v-btn text @click="backToMyPage" v-if="!saveStatus">
+        <v-btn text @click="backToMyPage" v-if="!saveStatus && !rightDrawer">
           {{ $t("backToMyPage") }}
         </v-btn>
 
-        <v-divider vertical></v-divider>
-        <v-btn text @click="logout">{{ $t("logout") }}</v-btn>
+        <v-divider vertical v-if="!rightDrawer"></v-divider>
+        <v-btn text @click="logout" v-if="!rightDrawer">{{
+          $t("logout")
+        }}</v-btn>
 
-        <v-divider vertical></v-divider>
-        <v-icon
-          size="30px"
-          dark
-          style="background-color: #1c3563"
-          @click="rightDrawer = !rightDrawer"
-          v-if="rightDrawer"
-          >keyboard_arrow_right</v-icon
-        >
+        <v-divider vertical v-if="!rightDrawer"></v-divider>
+
         <v-icon
           size="30px"
           dark
@@ -81,12 +68,46 @@
         <v-navigation-drawer
           v-model="rightDrawer"
           app
-          :width="450"
+          :width="375"
           :right="true"
         >
-          <v-toolbar color="#2c4f91" :height="95" dark> </v-toolbar>
+          <v-toolbar color="#2c4f91" :height="35" dark>
+            <v-spacer></v-spacer>
+            <v-btn text disabled id="custom-disabled">{{
+              this.$store.state.userStore.employeeName + $t("user")
+            }}</v-btn>
+
+            <v-divider vertical></v-divider>
+            <v-btn
+              text
+              v-if="saveStatus"
+              v-confirm="{
+                ok: backToMyPage,
+                message: message,
+                html: true,
+                okText: okText,
+                cancelText: cancelText,
+              }"
+            >
+              {{ $t("backToMyPage") }}
+            </v-btn>
+            <v-btn text @click="backToMyPage" v-if="!saveStatus">
+              {{ $t("backToMyPage") }}
+            </v-btn>
+
+            <v-divider vertical></v-divider>
+            <v-btn text @click="logout">{{ $t("logout") }}</v-btn>
+
+            <v-divider vertical></v-divider>
+            <v-icon
+              size="30px"
+              dark
+              style="background-color: #1c3563"
+              @click="rightDrawer = !rightDrawer"
+              >keyboard_arrow_right</v-icon
+            >
+          </v-toolbar>
           <FlowInformationTable />
-          <DepartmentColorChips />
         </v-navigation-drawer>
       </v-main>
     </div>
@@ -151,9 +172,13 @@ export default {
     eventBus.$on("sendStoreStatus", (saveStatus) => {
       this.saveStatus = saveStatus;
     });
+    eventBus.$on("closeLeftDrawer", () => {
+      this.leftDrawer = false;
+    });
   },
   beforeDestroy() {
     eventBus.$off("sendStoreStatus");
+    eventBus.$off("closeLeftDrawer");
   },
   methods: {
     async getBuildingList() {

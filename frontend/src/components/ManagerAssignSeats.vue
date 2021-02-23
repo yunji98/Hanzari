@@ -291,10 +291,15 @@ export default {
       this.viewSeatInfo();
     });
 
-    //자리 불투명도 값을 받기 위한 event
-    eventBus.$on("pushSeatOpacity", (seatOpacity) => {
-      this.seatOpacity = seatOpacity;
-      this.changeSeatOpacity();
+    //전체 선택 체크박스
+    eventBus.$on("pushSelectAllStatus", (selectAllStatus) => {
+      if (selectAllStatus) {
+        this.selectAllSeat();
+      } else {
+        console.log(selectAllStatus);
+        this.floorCanvas.discardActiveObject();
+        this.floorCanvas.requestRenderAll();
+      }
     });
 
     //모든 층 이미지를 가지고 있는 Map을 받기 위한 event
@@ -426,18 +431,6 @@ export default {
               this.floorCanvas.relativePan(delta);
               this.zoomStatus = true;
             }
-          }
-        });
-
-        this.floorCanvas.on("mouse:down", (event) => {
-          let activeObjects = this.floorCanvas.getActiveObjects();
-          if (activeObjects) {
-            eventBus.$emit("pushMemoComment", null);
-            eventBus.$emit(
-              "pushManageSeatTabOfSelectedSeatsComponentStatus",
-              false
-            );
-            eventBus.$emit("pushMappingEmployeeComponentStatus", false);
           }
         });
       }
@@ -604,7 +597,15 @@ export default {
           } else {
             multiSelectionObjectList = [];
             activeSelection = null;
+
             this.floorCanvas.discardActiveObject();
+            eventBus.$emit("pushMemoComment", null);
+            eventBus.$emit(
+              "pushManageSeatTabOfSelectedSeatsComponentStatus",
+              false
+            );
+            eventBus.$emit("pushCheckBoxSelectAllStatus", false);
+            eventBus.$emit("pushMappingEmployeeComponentStatus", false);
           }
         }
       });
@@ -613,11 +614,37 @@ export default {
       this.floorCanvas.on("mouse:up", (event) => {
         let activeObjects = this.floorCanvas.getActiveObjects();
         if (event.button === 1) {
-          if (activeObjects.length > 0)
+          let eachFloorSeatList = this.getEachFloorSeatList(
+            this.currentSelectedFloorObject.floorId
+          );
+
+          if (activeObjects.length > 0) {
+            if (activeObjects.length === eachFloorSeatList.length) {
+              eventBus.$emit("pushCheckBoxSelectAllStatus", true);
+            }
+
+            let comment = activeObjects[0].comment;
+
+            let warn = false;
+            for (let i = 1; i < activeObjects.length; i++) {
+              if (comment != activeObjects[i].comment) {
+                warn = true;
+                break;
+              }
+            }
+
+            if (warn) {
+              eventBus.$emit("pushMemoComment", "");
+            } else {
+              eventBus.$emit("pushMemoComment", comment);
+            }
+
             eventBus.$emit(
               "pushManageSeatTabOfSelectedSeatsComponentStatus",
               true
             );
+            eventBus.$emit("pushShowSeatTabStatus", true);
+          }
         }
       });
     },
@@ -747,7 +774,6 @@ export default {
       this.lockStatus = false;
       this.floorCanvas.selection = true;
       this.setDefaultCursor();
-      this.changeSeatOpacity();
       this.viewSeatInfo();
       let eachfloorSeatList = this.getEachFloorSeatList(
         this.currentSelectedFloorObject.floorId
@@ -834,18 +860,6 @@ export default {
         },
         { crossOrigin: "Anonymous" }
       );
-    },
-    //투명도 조절
-    changeSeatOpacity() {
-      let eachFloorSeatList = this.getEachFloorSeatList(
-        this.currentSelectedFloorObject.floorId
-      );
-      for (let i = 0; i < eachFloorSeatList.length; i++) {
-        eachFloorSeatList[i].item(0).set("opacity", this.seatOpacity);
-        eachFloorSeatList[i].item(1).set("opacity", this.seatOpacity);
-        this.floorCanvas.renderAll();
-      }
-      this.floorCanvas.renderAll();
     },
     //각 층의 도형 리스트 반환하기
     getEachFloorSeatList: function (floor) {
@@ -1339,7 +1353,26 @@ export default {
       this.floorCanvas.setActiveObject(seats);
       this.floorCanvas.requestRenderAll();
 
+      let activeObjects = this.floorCanvas.getActiveObjects();
+
+      let comment = activeObjects[0].comment;
+
+      let warn = false;
+      for (let i = 1; i < activeObjects.length; i++) {
+        if (comment != activeObjects[i].comment) {
+          warn = true;
+          break;
+        }
+      }
+
+      if (warn) {
+        eventBus.$emit("pushMemoComment", "");
+      } else {
+        eventBus.$emit("pushMemoComment", comment);
+      }
       eventBus.$emit("pushManageSeatTabOfSelectedSeatsComponentStatus", true);
+      eventBus.$emit("pushCheckBoxSelectAllStatus", true);
+      eventBus.$emit("pushShowSeatTabStatus", true);
     },
     clickCSVContextMenu(index) {
       switch (index) {
@@ -1380,7 +1413,7 @@ export default {
         }
       });
 
-      group.on("mouseout", (event) => {
+      group.on("mouseout", () => {
         this.toolTipStatus = false;
       });
     },
@@ -1413,8 +1446,29 @@ export default {
     },
     showSelectedSeatTab(group) {
       group.on("mousedown", () => {
-        eventBus.$emit("pushMemoComment", group.comment);
+        let activeObjects = this.floorCanvas.getActiveObjects();
+
+        if (activeObjects.length > 1) {
+          let comment = activeObjects[0].comment;
+
+          let warn = false;
+          for (let i = 1; i < activeObjects.length; i++) {
+            if (comment != activeObjects[i].comment) {
+              warn = true;
+              break;
+            }
+          }
+
+          if (warn) {
+            eventBus.$emit("pushMemoComment", "");
+          } else {
+            eventBus.$emit("pushMemoComment", comment);
+          }
+        } else {
+          eventBus.$emit("pushMemoComment", group.comment);
+        }
         eventBus.$emit("pushManageSeatTabOfSelectedSeatsComponentStatus", true);
+        eventBus.$emit("pushShowSeatTabStatus", true);
       });
     },
     //자리 하이라이트

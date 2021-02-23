@@ -1,55 +1,74 @@
 <template>
-  <v-layout row wrap class="text-xs-center">
-    <v-flex>
-      <v-card flat style="margin-left: 550px; width: 800px; height: 400px">
-        <v-card-title primary-title>
-          <h4>{{ this.$t("textEditPassword") }}</h4>
-        </v-card-title>
-        <v-form>
-          <v-row>
-            <v-text-field
-              prepend-icon="lock"
-              name="Password"
-              :label="$t('textFieldLabelPreviousPw')"
-              type="password"
-              v-model="oldPassword"
-            ></v-text-field>
-          </v-row>
-          <v-row>
-            <v-text-field
-              prepend-icon="lock"
-              name="Password"
-              :label="$t('textFieldLabelChangePw')"
-              type="password"
-              v-model="newPassword"
-              style="top: 100px"
-            ></v-text-field
-          ></v-row>
-          <v-row>
-            <v-text-field
-              prepend-icon="lock"
-              name="Password"
-              :label="$t('textFieldLabelChangePwCompare')"
-              type="password"
-              v-model="newPasswordCompare"
-            ></v-text-field>
-          </v-row>
-          <v-card-actions>
+  <div class="text-xs-center">
+    <v-layout>
+      <v-flex>
+        <h2>
+          {{ this.$t("projectMypage") }} > {{ this.$t("textEditPassword") }}
+        </h2>
+        <v-card
+          flat
+          class="mx-auto justify-center"
+          style="
+            margin-top: 2%;
+            border: 1px solid #dadce0;
+            padding: 1% 2% 1% 2%;
+          "
+        >
+          <v-form>
             <v-row>
-              <v-col class="text-right">
-                <v-btn @click="changeBackPage">{{
-                  this.$t("btnCancel")
-                }}</v-btn>
-                <v-btn @click="editUserPassword" dark color="#2c4f91">{{
-                  this.$t("btnOK")
-                }}</v-btn>
-              </v-col>
+              <v-text-field
+                prepend-icon="lock"
+                name="Password"
+                :label="$t('textFieldLabelPreviousPw')"
+                type="password"
+                v-model="oldPassword"
+              ></v-text-field>
             </v-row>
-          </v-card-actions>
-        </v-form>
-      </v-card>
-    </v-flex>
-  </v-layout>
+            <div>
+              {{ $t("warnChangePassword") }}
+            </div>
+            <v-row style="margin-top: 2%">
+              <v-text-field
+                prepend-icon="lock"
+                name="Password"
+                :label="$t('textFieldLabelChangePw')"
+                type="password"
+                v-model="newPassword"
+                style="top: 100px"
+              ></v-text-field
+            ></v-row>
+            <v-row>
+              <v-text-field
+                prepend-icon="lock"
+                name="Password"
+                :label="$t('textFieldLabelChangePwCompare')"
+                type="password"
+                v-model="newPasswordCompare"
+              ></v-text-field>
+            </v-row>
+            <v-card-actions>
+              <v-row>
+                <v-col class="text-right">
+                  <v-btn
+                    style="height: 30px; font-size: 12px"
+                    @click="changeBackPage"
+                    >{{ this.$t("btnCancel") }}</v-btn
+                  >
+                  <v-btn
+                    style="height: 30px; font-size: 12px"
+                    @click="editUserPassword"
+                    dark
+                    color="#2c4f91"
+                    >{{ this.$t("btnOK") }}</v-btn
+                  >
+                </v-col>
+              </v-row>
+            </v-card-actions>
+          </v-form>
+        </v-card>
+      </v-flex>
+    </v-layout>
+  </div>
 </template>
 
 <script>

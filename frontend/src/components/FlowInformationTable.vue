@@ -1,79 +1,97 @@
 <template>
-  <v-card flat>
-    <v-card-title>
-      <div class="mx-1"></div>
-      <h4>{{ currentSelectedFloorName }}{{ $t("floor") }}</h4>
-    </v-card-title>
-    <div class="mx-3">
-      <v-data-table
-        :headers="headers"
-        :items="floorInformationlist"
-        height="700px"
-        item-key="name"
-        class="elevation-1"
-        :no-data-text="$t('dataTabelNoDataTextEmployee')"
-        :footer-props="{
-          'items-per-page-text': $t('dataTabelPerPageTextSeat'),
-        }"
+  <div>
+    <v-toolbar color="#2c4f91" dark :height="60"></v-toolbar>
+    <v-card flat>
+      <v-card-title>
+        <div class="mx-1"></div>
+        <h4>{{ currentSelectedFloorName }}{{ $t("floor") }}</h4>
+      </v-card-title>
+      <v-card-subtitle style="font-size: 12px; text-align: right">
+        <b style="text-align: left">전체 ({{ floorSeatsNumber }})</b>
+        <b style="text-align: left">
+          &nbsp; &nbsp;공석 ({{ floorVacantSeatsNumber }}) &nbsp; &nbsp;
+        </b></v-card-subtitle
       >
-        <template v-slot:item="row">
-          <tr>
-            <td>
-              {{ row.item.name }}
-            </td>
-            <td>
-              <v-btn
-                id="changeColorButton"
-                elevation="2"
-                v-if="
-                  userAuthority === 'admin' &&
-                  row.item.name != '전체' &&
-                  row.item.name != '공석'
-                "
-                fab
-                x-small
-                :color="getChipColor(row.item.name)"
-                @click="changeColorButtonClicked(row.item.name)"
-              >
-                <v-icon
-                  :color="getChipTextColor(getChipColor(row.item.name))"
-                  medium
-                  >sync</v-icon
+      <div style="margin-left: 10px; margin-right: 10px">
+        <v-data-table
+          :headers="headers"
+          :items="floorInformationlist"
+          :page.sync="page"
+          :items-per-page="itemsPerPage"
+          item-key="name"
+          height="672px"
+          class="elevation-1"
+          :no-data-text="$t('dataTabelNoDataTextEmployee')"
+          hide-default-header
+          hide-default-footer
+          @page-count="pageCount = $event"
+        >
+          <template v-slot:item="row">
+            <tr>
+              <td style="font-size: 12px; width: 500px">
+                <b>{{ row.item.name }}</b> ({{ row.item.number }})
+              </td>
+              <td>
+                <v-btn
+                  id="changeColorButton"
+                  elevation="2"
+                  v-if="
+                    userAuthority === 'admin' &&
+                    row.item.name != '전체' &&
+                    row.item.name != '공석'
+                  "
+                  fab
+                  x-small
+                  :color="getChipColor(row.item.name)"
+                  @click="changeColorButtonClicked(row.item.name)"
                 >
-              </v-btn>
-              <v-avatar
-                v-if="
-                  (userAuthority === 'viewer' || userAuthority === 'manager') &&
-                  row.item.name != '전체' &&
-                  row.item.name != '공석'
-                "
-                size="32"
-                :color="getChipColor(row.item.name)"
+                  <v-icon
+                    :color="getChipTextColor(getChipColor(row.item.name))"
+                    medium
+                    >sync</v-icon
+                  >
+                </v-btn>
+                <v-avatar
+                  v-if="
+                    (userAuthority === 'viewer' ||
+                      userAuthority === 'manager') &&
+                    row.item.name != '전체' &&
+                    row.item.name != '공석'
+                  "
+                  size="32"
+                  :color="getChipColor(row.item.name)"
+                >
+                  <v-icon
+                    :color="getChipTextColor(getChipColor(row.item.name))"
+                    medium
+                    >format_paint
+                  </v-icon></v-avatar
+                >
+              </td>
+              <td
+                v-if="row.item.name === '전체' || row.item.name === '공석'"
+                style="font-size: 12px; text-align: right"
               >
-                <v-icon
-                  :color="getChipTextColor(getChipColor(row.item.name))"
-                  medium
-                  >format_paint
-                </v-icon></v-avatar
-              >
-            </td>
-            <td>{{ row.item.number }}</td>
-            <td>
-              <v-btn
-                v-if="row.item.name != '전체' && row.item.number > 0"
-                outlined
-                color="#2c4f91"
-                style="height: 30px; font-size: 12px"
-                id="showSeatButton"
-                @click="showSeatButtonClicked(row.item.name)"
-                >{{ $t("findSeat") }}</v-btn
-              >
-            </td>
-          </tr>
-        </template>
-      </v-data-table>
-    </div>
-  </v-card>
+                {{ row.item.number }}
+              </td>
+              <td>
+                <v-btn
+                  v-if="row.item.name != '전체' && row.item.number > 0"
+                  outlined
+                  color="#2c4f91"
+                  style="height: 30px; font-size: 12px"
+                  id="showSeatButton"
+                  @click="showSeatButtonClicked(row.item.name)"
+                  >{{ $t("findSeat") }}</v-btn
+                >
+              </td>
+            </tr>
+          </template>
+        </v-data-table>
+        <v-pagination v-model="page" :length="pageCount"></v-pagination>
+      </div>
+    </v-card>
+  </div>
 </template>
 
 <script>
@@ -83,6 +101,10 @@ export default {
   name: "FlowInformationTable",
   data() {
     return {
+      page: 1,
+      pageCount: 0,
+      itemsPerPage: 14,
+
       userAuthority: null,
 
       allFloorList: null,
@@ -98,9 +120,17 @@ export default {
       floorInformationlist: [],
 
       headers: [
-        { text: this.$i18n.t("headersDivision"), value: "name" },
+        {
+          text: this.$i18n.t("headersDivision"),
+          align: "center",
+          value: "name",
+        },
+        {
+          text: this.$i18n.t("headersNumberOfSeat"),
+          align: "center",
+          value: "number",
+        },
         { text: "", value: "changeColorButton" },
-        { text: this.$i18n.t("headersNumberOfSeat"), value: "number" },
         { text: "", value: "showSeatButton" },
       ],
 
@@ -262,16 +292,6 @@ export default {
     },
     initFloorInformation() {
       this.floorInformationlist = [];
-
-      let floordata = {};
-      floordata.name = this.$i18n.t("textAllSeat");
-      floordata.number = 0;
-      this.floorInformationlist.push(floordata);
-
-      floordata = {};
-      floordata.name = this.$i18n.t("textEmptySeat");
-      floordata.number = 0;
-      this.floorInformationlist.push(floordata);
     },
     getFloorInformation() {
       this.floorInformationlist = [];
@@ -330,15 +350,6 @@ export default {
           }
         }
       }
-      let floordata = {};
-      floordata.name = this.$i18n.t("textAllSeat");
-      floordata.number = this.floorSeatsNumber;
-      this.floorInformationlist.push(floordata);
-
-      floordata = {};
-      floordata.name = this.$i18n.t("textEmptySeat");
-      floordata.number = this.floorVacantSeatsNumber;
-      this.floorInformationlist.push(floordata);
 
       if (departmentList.length > 0) {
         for (let i = 0; i < departmentList.length; i++) {

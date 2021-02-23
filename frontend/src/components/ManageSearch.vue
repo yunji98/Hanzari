@@ -15,38 +15,42 @@
       ></v-text-field>
     </v-card-title>
 
-    <div style="margin-left: 15px; margin-right: 15px;font-size:10px">
-    <v-data-table
-      :headers="headers"
-      :items="allEmployeeSeat"
-      :search="search"
-      height="500px"
-      class="elevation-1"
-      :no-data-text="$t('dataTabelNoDataTextSeat')"
-      :footer-props="{
-        'items-per-page-text': $t('dataTabelPerPageTextSeat'),
-        'items-per-page-options': [5, 10],
-      }"
-      
-    >
-      <template v-slot:item="row">
-        <tr>
-          <td>{{ row.item.name }}</td>
-          <td>{{ row.item.department }}</td>
-          <td>{{ row.item.number }}</td>
-          <td>
-            <v-btn
-              outlined
-              color="#2c4f91"
-              style="height: 30px; font-size: 12px"
-              id="showSeatButton"
-              @click="showSeatButtonClicked(row.item)"
-              >{{ $t("findSeat") }}</v-btn
-            >
-          </td>
-        </tr>
-      </template>
-    </v-data-table>
+    <div style="margin-left: 10px; margin-right: 10px">
+      <v-data-table
+        :headers="headers"
+        :items="allEmployeeSeat"
+        :search="search"
+        :page.sync="page"
+        :items-per-page="itemsPerPage"
+        class="elevation-1"
+        :no-data-text="$t('dataTabelNoDataTextSeat')"
+        hide-default-header
+        hide-default-footer
+        @page-count="pageCount = $event"
+      >
+        <template v-slot:item="row">
+          <tr>
+            <td style="font-size: 12px; width: 500px; text-align: left">
+              <b>{{ row.item.name }}</b>
+              <br />{{ row.item.department }} <br />{{ row.item.number }}
+            </td>
+            <td>
+              <v-btn
+                outlined
+                color="#2c4f91"
+                style="height: 30px; font-size: 12px; width: 30px"
+                id="showSeatButton"
+                @click="showSeatButtonClicked(row.item)"
+                >{{ $t("findSeat") }}</v-btn
+              >
+            </td>
+          </tr>
+        </template>
+      </v-data-table>
+      <v-pagination
+        v-model="page"
+        :length="pageCount"
+      ></v-pagination>
     </div>
   </v-card>
 </template>
@@ -59,6 +63,10 @@ export default {
   props: ["eachEmployeeSeatMapToManageSearch"],
   data() {
     return {
+      page: 1,
+      pageCount: 0,
+      itemsPerPage:11,
+
       allEmployeeSeat: [],
       allEmployeeSeatMap: null,
 
@@ -66,13 +74,11 @@ export default {
       headers: [
         {
           text: this.$i18n.t("textName"),
-          align: "start",
+          align: "center",
           sortable: true,
           value: "name",
         },
-        { text: this.$i18n.t("textDept"), value: "department" },
-        { text: this.$i18n.t("textNumber"), value: "number" },
-        { text: "", value: "showSeatButton" },
+        { text: "", value: "showSeatButton", sortable: false },
       ],
       textFocusStatus: false,
     };

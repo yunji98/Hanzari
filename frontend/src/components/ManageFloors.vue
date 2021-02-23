@@ -101,14 +101,24 @@
               <h4>{{ this.$t("textSettingFloor") }}</h4></v-card-title
             > </v-col
           ><v-col cols="12" sm="3" style="margin-top: 10px">
-            <div style= "margin-right: 15px;">
             <v-btn icon color="black" style="float: right;" text
               ><v-icon size="30px" @click="addFloor"
                 >add_circle</v-icon
               ></v-btn
             >
-            </div>
           </v-col>
+        </v-row>
+
+        <v-row style="margin-top: -25px; margin-left: 0px">
+          <v-col cols="12" sm="6">
+            <b style="font-size:12px;color:gray;">
+              {{ this.$t("textLabelEditFloorName") }}</b></v-col
+          >
+          <v-col cols="12" sm="6">
+            <b style="font-size:12px;color:gray;">
+              {{ this.$t("textLabelMaxSeatNumber") }}</b>
+          </v-col>
+          
         </v-row>
 
         <div style="overflow-x: hidden; overflow-y: auto; height: 600px">
@@ -116,25 +126,32 @@
             v-for="floorObject of this.settingsFloorList"
             :key="floorObject.floorId"
           >
-            <v-col cols="12" sm="9">
-              <div style= "margin-left: 15px;">
+            <v-col cols="12" sm="6">
+              <div class="mx-3">
               <v-text-field
                 name="editFloorNameInSetting[]"
                 v-model="editFloorNameInSetting[floorObject.floorId]"
-                :label="$t('textFieldLabelEditFloorName')"
                 solo
                 dense
                 style="height:45px"
               ></v-text-field>
               </div>
             </v-col>
+
+            <v-col cols="12" sm="4">
+              <v-text-field
+                v-model="floorObject.maxSeatNumber"
+                type="number"
+                solo
+                dense
+                style="height:45px; margin-left:0px;"
+              ></v-text-field>
+            </v-col>
   
-            <v-col cols="12" sm="3">
-              <div style="margin-right: 15px;">
+            <v-col cols="12" sm="2">
               <v-btn icon color="black" @click="removeFloor(floorObject.floorId)"
-                ><v-icon large>delete</v-icon></v-btn
+                style="margin-left:1px;"><v-icon large>delete</v-icon></v-btn
               >
-              </div>
             </v-col>
           </v-row>
         </div>
@@ -326,6 +343,7 @@ export default {
       newFloorObject.floorName = "";
       newFloorObject.buildingId = this.$store.state.buildingStore.building.buildingId;
       newFloorObject.floorOrder = new Date().toISOString().substr(0, 23);
+      newFloorObject.maxSeatNumber = 300;
       newFloorObject.isObjFromDB = false;
       newFloorObject.httpRequestPostStatus = true;
 

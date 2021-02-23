@@ -105,6 +105,7 @@ const postStore = {
                     floorData.floor_name = allFloorList[i].floorName;
                     floorData.building_id = allFloorList[i].buildingId;
                     floorData.floor_order = allFloorList[i].floorOrder;
+                    floorData.max_num_seat = parseInt(allFloorList[i].maxSeatNumber);
                     console.log(floorData)
                     commit("PUSH_FLOORLIST", floorData);
                 }

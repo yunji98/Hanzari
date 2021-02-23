@@ -50,7 +50,8 @@ const messages = {
         "floorSeatLayout": "{floorName}층 자리 배치도",
         "confirmSave": "저장하시겠습니까? 저장 완료 1초 뒤 새로고침 됩니다.",
         "confirmSaveBeforeChangeBuilding": "{buildingName}의 {floorName}으로 이동하시겠습니까? (건물 간 이동은 현재 건물에서 진행되던 작업을 저장한 후 가능합니다. 저장 완료 1초 뒤 새로고침 됩니다.)",
-        "alertModifyAllSeats":"너비 또는 넓이를 입력해야 합니다",
+        "alertModifySeatWidth": "너비를 입력해야 합니다",
+        "alertModifySeatHeight": "높이를 입력해야 합니다",
         "titleConfirmUploadCSV": "CSV 파일 업로드",
         "titleConfirmSave": "저장",
         "titleConfirmMoveSeatToAnotherFloor": "층간 자리이동",
@@ -63,9 +64,10 @@ const messages = {
         "titleConfirmLogout": "로그아웃",
 
         //AuthorizeEmployee.vue
+        "authorizeemployee": "사원 권한 변경",
         "textFieldLabelSearchEmployee": "사원의 정보를 검색하세요.",
         "dataTabelNoDataTextEmployee": "사원 데이터가 없습니다.",
-        "dataTabelPerPageTextEmployee": "페이지 당 사원수",
+        "dataTabelPerPageTextEmployee": "",
         "btnCancel": "취소",
         "textName": "이름",
         "textDept": "부서",
@@ -84,10 +86,11 @@ const messages = {
         "alertRemoveCheckLeftTable": "좌측 테이블에 체크를 해제해야합니다.",
 
         //BuildingSetting.vue
-        "inputBuildingName": "건물명 입력",
-        "textInputBuildingName": "새로 생성할 건물명을 입력하세요.",
+        "inputBuildingName": "건물",
+        "textInputBuildingName": "새로 생성할 건물 이름을 입력하세요.",
 
         //EditPassword.vue
+        "warnChangePassword": "비밀번호 안전성: 8자 이상 입력하세요. 다른 사이트에서 쓰는 비밀번호나 애완동물의 이름처럼 추측하기 쉬운 이름은 사용하지 마세요.",
         "textEditPassword": "비밀번호 변경",
         "alertNoInputOldPassword": "현재 비밀번호를 입력해야합니다.",
         "alertNoInputNewPassword": "새 비밀번호를 입력해야합니다.",
@@ -106,24 +109,27 @@ const messages = {
         //ManageFloors.vue
         "textBuildingName": "건물 이름",
         "textSelectFloor": "층 선택",
-        "textSettingFloor": "층 설정",
+        "textSettingFloor": "층",
         "btnConfirm": "확인",
         "textSettingImage": "도면 이미지 설정",
         "btnUploadImage": "업로드",
         "textUploadImage": "이미지를 업로드하세요.",
         "alertNoFloorOnImage": "도면을 올릴 층이 없습니다.",
-        "textFieldLabelEditFloorName": "층 이름을 수정하세요.",
+        "textLabelEditFloorName": "층 이름",
+        "textFieldLabelEditFloorName": "새로 생성할 층 이름을 입력하세요.",
+        "textLabelMaxSeatNumber" : "최대 자리 개수",
+        "textDelete" : "삭제",
         "tooltipFloorSettingBtn": "층 추가, 삭제, 층 이름 수정이 가능합니다.",
 
         //ManageSearch.vue
         "textFieldLabelSearchSeat": "이름/부서/내선번호 중 입력하세요.",
         "dataTabelNoDataTextSeat": "자리에 매핑된 사원 데이터가 없습니다.",
-        "dataTabelPerPageTextSeat": "페이지 당 자리수",
+        "dataTabelPerPageTextSeat": "",
         "searchEmployee": "사원 자리 검색",
         "findSeat": "찾기",
 
         //ManageSeats.vue
-        "checkBoxSelectAll":"자리 전체 선택(Ctrl+A)",
+        "checkBoxSelectAll": "자리 전체 선택(Ctrl+A)",
         "textMakeSeat": "자리 만들기",
         "textViewSeatTooltip": "자리 툴팁",
         "textChangeAllSeatSize": "전체 자리 크기 조정하기",
@@ -141,15 +147,15 @@ const messages = {
         "alertNoImage": "해당 건물 층에 이미지가 없습니다.",
         "textChangeBuildingSeat": "건물간 이동하기",
         "textMemoToSeat": "메모 작성하기",
-        "textInMemoTextArea": "자리에 남기고자 하는 메모를 입력하세요.",
+        "textInMemoTextArea": "자리에 남기고 싶은 메모를 입력하세요.",
         "selectLabelNumberSeat": "자리 개수",
-        "selectLabelFloor": "이동할 층을 선택하세요.",
-        "selectLabelBuilding": "이동할 건물의 층을 선택하세요.",
+        "selectLabelFloor": "이동할 층 선택",
+        "selectLabelBuilding": "이동할 건물의 층 선택",
         "selectNoDataFloor": "이동할 층이 없습니다.",
         "selectNoDataBuilding": "이동할 건물이 없습니다.",
         "reorderSeatName": "자리명 재정렬",
         "reorder": "재정렬하기",
-        "mapping": "매핑하기",
+        "mapping": "매핑",
         "alertNoMemoComment": "입력된 메모가 없습니다.",
 
         //ProgressDialog.vue
@@ -177,7 +183,7 @@ const messages = {
             "자리 아이디를 입력하지 않은 자리 {numberOfSeatIdIsNullText}개 : {seatNameOfSeatIdIsNullText}<br>존재하지 않은 자리아이디를 입력한 자리 {numberOfSeatIsNotExistText}개 : {seatNameOfSeatIsNotExistText}<br>존재하지 않은 사원아이디를 입력한 자리 {numberOfEmployeeIsNotExistText}개 : {seatNameOfEmployeeIsNotExistText}",
 
         //Login.vue
-        "projectLogin": "한자리 로그인",
+        "projectLogin": "로그인",
         "login": "로그인",
         "employeeId": "사번",
         "password": "비밀번호",
@@ -185,7 +191,9 @@ const messages = {
         "employeeIdExample": "1012345",
 
         //AdminMyPage.vue
-        "projectMypage": "한자리 마이페이지",
+        "projectMypage": "마이페이지",
+        "buildingPage": "건물 생성 및 선택",
+        "buildingPageSelect": "건물 선택",
         "createNewBuilding": "새 건물 생성",
         "changeMemberInformation": "비밀번호 변경",
         "grantAuthority": "권한 변경",
@@ -209,11 +217,11 @@ const messages = {
         "authorityViewer": "뷰어",
         "authorityAdmin": "관리자",
         "authorityManager": "매니저",
-        "superMypageTitle": "한자리 권한변경",
+        "superMypageTitle": "권한변경",
         "btnMoveEmployeeToRightDataTable": ">>이동",
         "btnMoveEmployeeToLeftDataTable": "<<이동",
         "btnResetAuthorizeEmployee": "초기화",
-        "alertSuccessChangeEmployeeAuthority" : "권한 변경에 성공하였습니다.",
+        "alertSuccessChangeEmployeeAuthority": "권한 변경에 성공하였습니다.",
 
         //Tabs.vue
         "settingSeat": "자리 설정",
