@@ -1,134 +1,160 @@
 <template>
-  <v-layout row wrap class="text-xs-center"
-    ><v-flex
-      ><v-row v-if="this.$store.state.getStore.allEmployee" class="mx-auto">
-        <v-col cols="12" sm="5">
+  <div class="text-xs-center">
+    <v-layout
+      ><v-flex>
+        <h2>
+          {{ this.$t("projectMypage") }} > {{ this.$t("authorizeemployee") }}
+        </h2>
+        <v-card
+          v-if="this.$store.state.getStore.allEmployee"
+          flat
+          class="mx-auto justify-center"
+          style="
+            margin-top: 2%;
+            border: 1px solid #dadce0;
+            padding: 1% 2% 1% 2%;
+          "
+        >
           <v-row>
-            <v-col cols="12">
-              <v-combobox
-                v-model="leftComboBoxSelectString"
-                :items="leftComboBoxItemList"
-                hide-selected
-                outlined
-                solo
-                v-on:change="changeAuthorityInLeftComboBox"
-              ></v-combobox>
-            </v-col>
-          </v-row>
+            <v-col cols="12" sm="5">
+              <v-row>
+                <v-col cols="12">
+                  <v-combobox
+                    v-model="leftComboBoxSelectString"
+                    :items="leftComboBoxItemList"
+                    hide-selected
+                    outlined
+                    solo
+                    v-on:change="changeAuthorityInLeftComboBox"
+                  ></v-combobox>
+                </v-col>
+              </v-row>
 
-          <v-row>
-            <v-col cols="12">
-              <v-text-field
-                v-model="employeeSearch"
-                append-icon="mdi-magnify"
-                :label="$t('textFieldLabelSearchEmployee')"
-                single-line
-                hide-details
-              ></v-text-field>
-              <v-data-table
-                v-model="leftDataTableSelectedItemList"
-                item-key="employeeId"
-                show-select
-                :headers="headers"
-                :items="leftDataTableEmployeeList"
-                :search="employeeSearch"
-                height="400px"
-                class="elevation-1"
-                :no-data-text="$t('dataTabelNoDataTextEmployee')"
-                :footer-props="{
-                  'items-per-page-text': $t('dataTabelPerPageTextEmployee'),
-                  'items-per-page-options': [5, 10],
-                }"
-              >
-              </v-data-table>
-            </v-col> </v-row
-        ></v-col>
-        <v-col cols="12" sm="2"
-          ><v-row>
-            <v-col cols="12">
-              <v-btn
-                x-large
-                @click="moveEmployeeToRightDataTable"
-                :disabled="!moveEmployeeToRightBtnStatus"
-                >{{ this.$i18n.t("btnMoveEmployeeToRightDataTable") }}</v-btn
-              >
+              <v-row>
+                <v-col cols="12">
+                  <v-text-field
+                    v-model="employeeSearch"
+                    append-icon="mdi-magnify"
+                    :label="$t('textFieldLabelSearchEmployee')"
+                    single-line
+                    hide-details
+                  ></v-text-field>
+                  <v-data-table
+                    v-model="leftDataTableSelectedItemList"
+                    item-key="employeeId"
+                    show-select
+                    :headers="headers"
+                    :items="leftDataTableEmployeeList"
+                    :search="employeeSearch"
+                    height="400px"
+                    class="elevation-1"
+                    :no-data-text="$t('dataTabelNoDataTextEmployee')"
+                    :footer-props="{
+                      'items-per-page-text': $t('dataTabelPerPageTextEmployee'),
+                      'items-per-page-options': [5, 10],
+                    }"
+                  >
+                  </v-data-table>
+                </v-col> </v-row
+            ></v-col>
+            <v-col cols="12" sm="2"
+              ><v-row>
+                <v-col cols="12">
+                  <v-btn
+                    x-large
+                    @click="moveEmployeeToRightDataTable"
+                    :disabled="!moveEmployeeToRightBtnStatus"
+                    >{{
+                      this.$i18n.t("btnMoveEmployeeToRightDataTable")
+                    }}</v-btn
+                  >
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col cols="12">
+                  <v-btn
+                    x-large
+                    @click="moveEmployeeToLeftDataTable"
+                    :disabled="!moveEmployeeToLeftBtnStatus"
+                    >{{ this.$i18n.t("btnMoveEmployeeToLeftDataTable") }}</v-btn
+                  >
+                </v-col>
+              </v-row>
             </v-col>
-          </v-row>
-          <v-row>
-            <v-col cols="12">
-              <v-btn
-                x-large
-                @click="moveEmployeeToLeftDataTable"
-                :disabled="!moveEmployeeToLeftBtnStatus"
-                >{{ this.$i18n.t("btnMoveEmployeeToLeftDataTable") }}</v-btn
-              >
-            </v-col>
-          </v-row>
-        </v-col>
-        <v-col cols="12" sm="5">
-          <v-row>
-            <v-col cols="12">
-              <v-combobox
-                v-model="rightComboBoxSelectString"
-                :items="afterComboBoxItemList"
-                hide-selected
-                outlined
-                solo
-                v-on:change="changeAuthorityInRightComboBox"
-              ></v-combobox>
-            </v-col>
-          </v-row>
+            <v-col cols="12" sm="5">
+              <v-row>
+                <v-col cols="12">
+                  <v-combobox
+                    v-model="rightComboBoxSelectString"
+                    :items="afterComboBoxItemList"
+                    hide-selected
+                    outlined
+                    solo
+                    v-on:change="changeAuthorityInRightComboBox"
+                  ></v-combobox>
+                </v-col>
+              </v-row>
 
-          <v-row>
-            <v-col cols="12">
-              <v-text-field
-                v-model="employeeSearch"
-                append-icon="mdi-magnify"
-                :label="$t('textFieldLabelSearchEmployee')"
-                single-line
-                hide-details
-              ></v-text-field>
-              <v-data-table
-                v-model="rightDataTableSelectedItemList"
-                item-key="employeeId"
-                show-select
-                :headers="headers"
-                :items="rightDataTableEmployeeList"
-                :search="employeeSearch"
-                height="400px"
-                class="elevation-1"
-                :no-data-text="$t('dataTabelNoDataTextEmployee')"
-                :footer-props="{
-                  'items-per-page-text': $t('dataTabelPerPageTextEmployee'),
-                  'items-per-page-options': [5, 10],
-                }"
-              >
-              </v-data-table>
+              <v-row>
+                <v-col cols="12">
+                  <v-text-field
+                    v-model="employeeSearch"
+                    append-icon="mdi-magnify"
+                    :label="$t('textFieldLabelSearchEmployee')"
+                    single-line
+                    hide-details
+                  ></v-text-field>
+                  <v-data-table
+                    v-model="rightDataTableSelectedItemList"
+                    item-key="employeeId"
+                    show-select
+                    :headers="headers"
+                    :items="rightDataTableEmployeeList"
+                    :search="employeeSearch"
+                    height="400px"
+                    class="elevation-1"
+                    :no-data-text="$t('dataTabelNoDataTextEmployee')"
+                    :footer-props="{
+                      'items-per-page-text': $t('dataTabelPerPageTextEmployee'),
+                      'items-per-page-options': [5, 10],
+                    }"
+                  >
+                  </v-data-table>
+                </v-col>
+              </v-row>
             </v-col>
-          </v-row>
-        </v-col>
-        <v-row>
-          <v-col class="text-left">
-            <v-btn color="error" x-large @click="resetAuthorizeEmployee">{{
-              this.$i18n.t("btnResetAuthorizeEmployee")
-            }}</v-btn>
-          </v-col>
-          <v-col class="text-right">
-            <v-btn x-large @click="cancelAuthorizeEmployee">{{
-              this.$i18n.t("btnCancel")
-            }}</v-btn>
-            <v-btn color="primary" x-large @click="confirmAuthorizeEmployee">{{
-              this.$i18n.t("btnConfirm")
-            }}</v-btn>
-          </v-col>
-        </v-row>
-      </v-row>
-
-      <ProgressDialog
-        v-if="!this.$store.state.getStore.allEmployee"
-        :dialogStatus="true"
-      /> </v-flex
-  ></v-layout>
+            <v-row>
+              <v-col class="text-left">
+                <v-btn
+                  style="height: 30px; font-size: 12px; margin-left: 10px"
+                  @click="resetAuthorizeEmployee"
+                  >{{ this.$i18n.t("btnResetAuthorizeEmployee") }}</v-btn
+                >
+              </v-col>
+              <v-col class="text-right">
+                <v-btn
+                  style="height: 30px; font-size: 12px"
+                  @click="cancelAuthorizeEmployee"
+                  >{{ this.$i18n.t("btnCancel") }}</v-btn
+                >
+                <v-btn
+                  color="#2c4f91"
+                  style="
+                  margin-right : 10px
+                  height: 30px;
+                  color: white;
+                  font-size: 12px;
+                "
+                  @click="confirmAuthorizeEmployee"
+                  >{{ this.$i18n.t("btnConfirm") }}</v-btn
+                >
+              </v-col>
+            </v-row>
+          </v-row></v-card
+        ><ProgressDialog v-else :dialogStatus="true" />
+      </v-flex>
+    </v-layout>
+  </div>
 </template>
 
 <script>
@@ -569,8 +595,7 @@ export default {
             this.leftComboBoxSelectString
           );
         })
-        .catch(() => {
-        });
+        .catch(() => {});
     },
     //API를 호출해서 권한을 변경시켜야할 사원들만 추출하기
     pushEmployeeListToChangeAuthorityList(authority) {
@@ -632,8 +657,7 @@ export default {
           console.log(this.employeeListToChangeAuthority);
           this.changeAuthority(this.employeeListToChangeAuthority);
         })
-        .catch(() => {
-        });
+        .catch(() => {});
     },
 
     //취소 버튼을 누를시

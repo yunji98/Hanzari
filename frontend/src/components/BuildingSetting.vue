@@ -2,7 +2,7 @@
   <v-layout row wrap class="text-xs-center">
     <v-flex>
       <v-card flat class="mx-auto justify-center" max-width="1000">
-        <v-row class="mx-auto text-center">
+        <v-row>
           <v-col cols="12" sm="10">
             <v-card-title>
               <h3>{{ this.$t("inputBuildingName") }}</h3></v-card-title
@@ -10,7 +10,7 @@
           ></v-row
         >
 
-        <v-row class="mx-auto text-center"
+        <v-row
           ><v-col cols="12" sm="10">
             <div class="mx-3">
               <v-text-field
@@ -22,17 +22,30 @@
             </div> </v-col
         ></v-row>
 
-        <v-row class="mx-auto">
+        <v-row>
           <v-col cols="12" sm="10">
             <v-card-title>
               <h3>{{ this.$t("textSettingFloor") }}</h3></v-card-title
             ></v-col
           >
           <v-col cols="12" sm="2">
-            <v-btn text style="top: 20px; margin-left: -30px"
+            <v-btn text style="top: 20px; margin-left: -40px"
               ><v-icon size="40px" dark @click="addFloor"
                 >add_circle</v-icon
               ></v-btn
+            >
+          </v-col>
+        </v-row>
+
+        <v-row>
+          <v-col cols="12" sm="7">
+            <v-card-subtitle>
+              <h3>{{ this.$t("textLabelEditFloorName") }}</h3></v-card-subtitle
+            ></v-col
+          >
+          <v-col cols="12" sm="5">
+            <v-card-subtitle>
+              <h3>{{ this.$t("textLabelMaxSeatNumber") }}</h3></v-card-subtitle
             >
           </v-col>
         </v-row>
@@ -42,11 +55,21 @@
           :key="floorObject.floorId"
           class="mx-auto d-flex child-flex"
         >
-          <v-col cols="12" sm="10">
-            <div class="mx-3">
+          <v-col cols="12" sm="7">
               <v-text-field
                 v-model="floorObject.floorName"
                 :label="$t('textFieldLabelEditFloorName')"
+                solo
+                dense
+              ></v-text-field>
+          </v-col>
+
+          <v-col cols="12" sm="3">
+            <div class="mx-3">
+              <v-text-field
+                v-model="floorObject.maxSeatNumber"
+                type="number"
+                :label="$t('textFieldLabelMaxSeatNumber')"
                 solo
                 dense
               ></v-text-field>
@@ -112,13 +135,14 @@ export default {
     firstFloor.floorName = "";
     firstFloor.buildingId = this.newBuildling.buildingId;
     firstFloor.floorOrder = new Date().toISOString().substr(0, 23);
+    firstFloor.maxSeatNumber = 300;
     firstFloor.isObjFromDB = false;
     firstFloor.httpRequestPostStatus = true;
 
     this.settingsFloorList.unshift(firstFloor);
   },
   methods: {
-    // key »ý¼º
+    // key ï¿½ï¿½ï¿½ï¿½
     createUUID() {
       return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
         /[xy]/g,
@@ -129,19 +153,20 @@ export default {
         }
       );
     },
-    // °Ç¹°ÀÇ Ãþ Ãß°¡
+    // ï¿½Ç¹ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ß°ï¿½
     addFloor() {
       let newFloorObject = {};
       newFloorObject.floorId = this.createUUID();
       newFloorObject.floorName = "";
       newFloorObject.buildingId = this.newBuildling.buildingId;
       newFloorObject.floorOrder = new Date().toISOString().substr(0, 23);
+      newFloorObject.maxSeatNumber = 300;
       newFloorObject.isObjFromDB = false;
       newFloorObject.httpRequestPostStatus = true;
 
       this.settingsFloorList.unshift(newFloorObject);
     },
-    // °Ç¹°ÀÇ Ãþ »èÁ¦
+    // ï¿½Ç¹ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     removeFloor(floorId) {
       const idx = this.settingsFloorList.findIndex(function (item) {
         return item.floorId === floorId; //String
@@ -160,10 +185,10 @@ export default {
       await this.$store.dispatch("saveFloors");
 
       this.$store.commit("SET_BUILDINGLIST", null);
-      //¸¶ÀÌÆäÀÌÁö·Î µ¹¾Æ°¥ ¶§ °»½ÅµÈ ºôµù ¸®½ºÆ®¸¦ ´Ù½Ã °¡Á®¿À±â À§ÇÔ
+      //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Æ°ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½Åµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ù½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
       this.$router.push("/Hanzari");
-      //¸¶ÀÌÆäÀÌÁö·Î ÀÌµ¿
+      //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½
     },
   },
 };

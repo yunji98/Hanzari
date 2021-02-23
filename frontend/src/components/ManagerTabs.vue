@@ -1,6 +1,17 @@
 <template>
   <div>
-    <v-toolbar color="#2c4f91" dark :height="30"> </v-toolbar>
+    <v-toolbar color="#2c4f91" dark :height="30"
+      ><v-icon
+        size="30px"
+        dark
+        style="background-color: #1c3563"
+        @click="closeLeftDrawer"
+        >keyboard_arrow_left</v-icon
+      ><v-divider vertical></v-divider>
+      <div class="mx-3">
+        <v-toolbar-title>{{ $t("projectName") }}</v-toolbar-title>
+      </div>
+    </v-toolbar>
     <v-tabs
       v-model="tab"
       background-color="#2c4f91"
@@ -31,6 +42,7 @@
                 selectedFloorObjectToManageSeats
               "
               :memoCommentToManageSeats="memoCommentToManageSeats"
+              :checkBoxSelectAllStatus="checkBoxSelectAllStatus"
             ></component>
           </v-card-text>
         </v-card>
@@ -57,10 +69,11 @@ export default {
 
       manageSeatTabOfSelectedSeatsComponentStatusToManageSeats: false,
 
-      memoCommentToManageSeats: null,
-
       eachEmployeeSeatMapToManageSearch: null,
       selectedFloorObjectToManageSeats: null,
+
+      memoCommentToManageSeats: null,
+      checkBoxSelectAllStatus: null,
 
       items: [
         {
@@ -85,37 +98,66 @@ export default {
     };
   },
   created() {
-    //매핑된 사원 추가시 검색 탭으로 사원 맵 받기 위한 event
-    eventBus.$on("pushEachEmployeeSeatMap", (eachEmployeeSeatMap) => {
-      console.log(eachEmployeeSeatMap);
-      this.eachEmployeeSeatMapToManageSearch = eachEmployeeSeatMap;
+    //자리 선택시 무조건 두번째 탭으로 자동 이동
+    eventBus.$on("pushShowSeatTabStatus", () => {
+      this.tab = 1;
     });
-    //선택한 층에 대한 값 받아와서 층 전환하기 위한 event
-    eventBus.$on("pushSelectedFloorObject", (floorObject) => {
-      this.selectedFloorObjectToManageSeats = floorObject;
-    });
+
     //초기에 두번째 탭 선택 안했을때도 선택한 자리에 대해서 뜨는 탭을 보여지게 하기 위함
     eventBus.$on(
       "pushManageSeatTabOfSelectedSeatsComponentStatus",
       (manageSeatTabOfSelectedSeatsComponentStatus) => {
         this.manageSeatTabOfSelectedSeatsComponentStatusToManageSeats = manageSeatTabOfSelectedSeatsComponentStatus;
-        if (manageSeatTabOfSelectedSeatsComponentStatus) {
-          this.tab = 1;
-        }
-        if (manageSeatTabOfSelectedSeatsComponentStatus === false) {
-          this.seatHeight = null;
-          this.seatWidth = null;
-        }
       }
     );
+
+    //초기에 두번째 탭 선택 안했을때 자리가 전체 선택일때 체크박스에 감지하기 위함
+    eventBus.$on("pushCheckBoxSelectAllStatus", (checkBoxSelectAllStatus) => {
+      this.checkBoxSelectAllStatus = checkBoxSelectAllStatus;
+    });
+
     //초기에 두번째 탭 선택 안했을때도 선택한 자리에 대해서 메모를 보여지게 하기 위함
     eventBus.$on("pushMemoComment", (memoComment) => {
       this.memoCommentToManageSeats = memoComment;
     });
+
+    //매핑된 사원 추가시 검색 탭으로 사원 맵 받기 위한 event
+    eventBus.$on("pushEachEmployeeSeatMap", (eachEmployeeSeatMap) => {
+      console.log(eachEmployeeSeatMap);
+      this.eachEmployeeSeatMapToManageSearch = eachEmployeeSeatMap;
+    });
+
+    //선택한 층에 대한 값 받아와서 층 전환하기 위한 event
+    eventBus.$on("pushSelectedFloorObject", (floorObject) => {
+      this.selectedFloorObjectToManageSeats = floorObject;
+    });
+
+    eventBus.$on("destroyTabEventFromManageSeats", () => {
+      this.destroyManageSeatsEvent();
+    });
+
+    eventBus.$on("destroyTabEventFromManageSearch", () => {
+      this.destroyManageSearchEvent();
+    });
+  },
+  methods: {
+    closeLeftDrawer() {
+      eventBus.$emit("closeLeftDrawer");
+    },
+    destroyManageSeatsEvent() {
+      eventBus.$off("pushManageSeatTabOfSelectedSeatsComponentStatus");
+      eventBus.$off("pushCheckBoxSelectAllStatus");
+      eventBus.$off("pushMemoComment");
+    },
+    destroyManageSearchEvent() {
+      eventBus.$off("pushEachEmployeeSeatMap");
+    },
   },
   beforeDestroy() {
-    eventBus.$off("pushEachEmployeeSeatMap");
+    eventBus.$off("pushShowSeatTabStatus");
     eventBus.$off("pushSelectedFloorObject");
+    eventBus.$off("destroyTabEventFromManageSeats");
+    eventBus.$off("destroyTabEventFromManageSearch");
   },
 };
 </script>

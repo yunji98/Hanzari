@@ -1,163 +1,171 @@
 <template>
   <v-app id="app">
-    <v-app-bar app color="#2c4f91" dark flat :height="30">
-      <v-toolbar-title>{{ $t("projectMypage") }}</v-toolbar-title>
-      <v-spacer />
-      <v-btn text @click="logout">{{ $t("logout") }}</v-btn>
-    </v-app-bar>
+    <div v-if="this.$store.state.getStore.loginEmployeeObject">
+      <v-app-bar app color="#2c4f91" dark flat :height="30">
+        <v-toolbar-title v-if="!drawer">{{
+          $t("projectMypage")
+        }}</v-toolbar-title>
+        <v-spacer />
+        <v-btn text @click="logout">{{ $t("logout") }}</v-btn>
+      </v-app-bar>
 
-    <v-main>
-      <v-container
-        class="text-xs-center"
-        v-if="this.$store.state.getStore.loginEmployeeObject"
-      >
-        <v-layout row wrap class="text-xs-center">
-          <v-flex>
-            <v-card flat class="mx-auto" height="200">
-              <v-card-title class="justify-center">
-                <v-avatar size="60" style="margin-right: 15px">
-                  <v-icon large>person</v-icon>
-                </v-avatar>
-                <h1>
-                  {{
-                    this.$store.state.getStore.loginEmployeeObject.employeeName
-                  }}
-                </h1>
-              </v-card-title>
+      <v-navigation-drawer v-model="drawer" app :width="375">
+        <v-toolbar color="#2c4f91" dark :height="30">
+          <v-toolbar-title v-if="drawer">{{
+            $t("projectMypage")
+          }}</v-toolbar-title>
+        </v-toolbar>
+        <v-sheet color="grey lighten-4" class="pa-4" style="text-align: center">
+          <v-avatar
+            class="mb-4"
+            color="grey darken-1"
+            size="100"
+            style="margin-top: 32px"
+            ><v-icon large>person</v-icon></v-avatar
+          >
+          <div>
+            {{ this.$store.state.getStore.loginEmployeeObject.employeeName }}
+          </div>
+          <div>
+            {{ this.$store.state.getStore.loginEmployeeObject.departmentName }}
+          </div>
+          <div>
+            {{ this.$store.state.getStore.loginEmployeeObject.extensionNumber }}
+          </div>
+        </v-sheet>
 
-              <v-card-title class="justify-center">
-                <h3>
-                  {{
-                    this.$store.state.getStore.loginEmployeeObject
-                      .departmentName
-                  }}
-                  {{
-                    this.$store.state.getStore.loginEmployeeObject
-                      .extensionNumber
-                  }}
-                </h3>
-              </v-card-title>
-            </v-card>
-          </v-flex>
-        </v-layout>
+        <v-divider />
 
-        <div
-          v-if="
-            !authorizeStatus &&
-            !editUserPasswordStatus &&
-            !buildingSettingStatus
-          "
-          class="text-xs-center"
-        >
-          <v-layout>
-            <v-flex>
-              <v-card flat class="mx-auto">
-                <v-card-title class="justify-center">
-                  <v-spacer />
-                  <div style="text-align: right; margin-top: 50px">
-                    <v-btn
-                      @click="getEditUserPassword"
-                      style="height: 30px; font-size: 12px"
-                      >{{ this.$t("changeMemberInformation") }}</v-btn
-                    >
-                    <v-btn
-                      color="#2c4f91"
-                      style="height: 30px; color: white; font-size: 12px"
-                      @click="getAuthorize"
-                      >{{ this.$t("grantAuthority") }}</v-btn
-                    >
-                  </div>
-                </v-card-title>
-                <v-divider />
-              </v-card>
-            </v-flex>
-          </v-layout>
-          <v-layout>
-            <v-flex>
-              <v-row>
-                <v-col
-                  v-for="buildingObj of this.buildingViewList"
-                  :key="buildingObj.buildingId"
-                  class="d-flex child-flex"
-                  cols="4"
+        <v-list>
+          <v-list-item>
+            <v-list-item-content>
+              <v-btn
+                style="height: 30px; font-size: 12px"
+                @click="getEditUserPassword"
+                :disabled="editUserPasswordStatus"
+                >{{ this.$t("changeMemberInformation") }}</v-btn
+              >
+            </v-list-item-content>
+          </v-list-item>
+
+          <v-list-item>
+            <v-list-item-content>
+              <v-btn
+                style="height: 30px; color: white; font-size: 12px"
+                color="#2c4f91"
+                @click="getAuthorize"
+                :disabled="authorizeStatus"
+                >{{ this.$t("grantAuthority") }}</v-btn
+              >
+            </v-list-item-content>
+          </v-list-item>
+        </v-list>
+      </v-navigation-drawer>
+
+      <v-main>
+        <v-container class="py-8 px-6" fluid>
+          <div
+            v-if="
+              !editUserPasswordStatus &&
+              !authorizeStatus &&
+              !buildingSettingStatus
+            "
+            class="text-xs-center"
+          >
+            <v-layout>
+              <v-flex>
+                <h2>{{ $t("buildingPage") }}</h2>
+                <v-card
+                  flat
+                  class="mx-auto justify-center"
+                  style="
+                    margin-top: 2%;
+                    border: 1px solid #dadce0;
+                    padding: 1% 2% 1% 2%;
+                  "
                 >
-                  <v-hover v-slot="{ hover }">
-                    <v-card
-                      :elevation="hover ? 12 : 2"
-                      v-if="buildingObj.buildingId === 0"
-                      style="height: 150px"
-                      @click="getBuildingSetting"
+                  <v-row>
+                    <v-col
+                      v-for="buildingObj of this.buildingViewList"
+                      :key="buildingObj.buildingId"
+                      class="d-flex child-flex"
+                      cols="4"
                     >
-                      <v-card-title class="justify-center">{{
-                        buildingObj.buildingName
-                      }}</v-card-title>
-                      <v-btn
-                        small
-                        disabled
-                        text
-                        class="justify-center"
-                        :style="{
-                          left: '50%',
-                          transform: 'translateX(-50%)',
-                          top: '25%',
-                          bottom: '25%',
-                        }"
-                        ><v-icon x-large dark>add_circle</v-icon></v-btn
-                      >
-                    </v-card>
+                      <v-hover v-slot="{ hover }">
+                        <v-card
+                          :elevation="hover ? 12 : 2"
+                          v-if="buildingObj.buildingId === 0"
+                          style="height: 150px"
+                          @click="getBuildingSetting"
+                        >
+                          <v-card-title class="justify-center">{{
+                            buildingObj.buildingName
+                          }}</v-card-title>
+                          <v-btn
+                            small
+                            disabled
+                            text
+                            class="justify-center"
+                            :style="{
+                              left: '50%',
+                              transform: 'translateX(-50%)',
+                              top: '10%',
+                            }"
+                            ><v-icon x-large dark>add_circle</v-icon></v-btn
+                          >
+                        </v-card>
 
-                    <v-card
-                      :elevation="hover ? 12 : 2"
-                      v-else
-                      style="height: 150px"
-                      @click="selectBuilding(buildingObj)"
-                    >
-                      <v-card-title class="justify-center"
-                        >{{ buildingObj.buildingName }} </v-card-title
-                      ><v-col class="text-right">
-                        <v-icon medium>stairs</v-icon>
-                        <span>{{ buildingObj.floorCnt }}</span>
-                        <v-menu bottom offset-y
-                          ><template v-slot:activator="{ on, attrs }">
-                            <v-btn text v-bind="attrs" v-on="on" n
-                              ><v-icon>more_vert</v-icon></v-btn
-                            >
-                          </template>
-                          <v-list>
-                            <v-list-item
-                              v-for="(item, index) in buildingContextItems"
-                              :key="index"
-                              @click.stop="
-                                clickBuildingContextMenu(
-                                  item.index,
-                                  buildingObj
-                                )
-                              "
-                            >
-                              <v-list-item-title>{{
-                                item.title
-                              }}</v-list-item-title>
-                            </v-list-item>
-                          </v-list></v-menu
-                        ></v-col
-                      >
-                    </v-card>
-                  </v-hover>
-                </v-col>
-              </v-row>
-            </v-flex>
-          </v-layout>
-        </div>
+                        <v-card
+                          :elevation="hover ? 12 : 2"
+                          v-else
+                          style="height: 150px"
+                          @click="selectBuilding(buildingObj)"
+                        >
+                          <v-card-title class="justify-center"
+                            >{{ buildingObj.buildingName }} </v-card-title
+                          ><v-col class="text-right">
+                            <v-icon medium>stairs</v-icon>
+                            <span>{{ buildingObj.floorCnt }}</span>
+                            <v-menu bottom offset-y
+                              ><template v-slot:activator="{ on, attrs }">
+                                <v-btn text v-bind="attrs" v-on="on" n
+                                  ><v-icon>more_vert</v-icon></v-btn
+                                >
+                              </template>
+                              <v-list>
+                                <v-list-item
+                                  v-for="(item, index) in buildingContextItems"
+                                  :key="index"
+                                  @click.stop="
+                                    clickBuildingContextMenu(
+                                      item.index,
+                                      buildingObj
+                                    )
+                                  "
+                                >
+                                  <v-list-item-title>{{
+                                    item.title
+                                  }}</v-list-item-title>
+                                </v-list-item>
+                              </v-list></v-menu
+                            ></v-col
+                          >
+                        </v-card>
+                      </v-hover>
+                    </v-col>
+                  </v-row></v-card
+                >
+              </v-flex>
+            </v-layout>
+          </div>
 
-        <AuthorizeEmployee v-else-if="authorizeStatus" />
-        <EditPassword v-else-if="editUserPasswordStatus" />
-        <BuildingSetting v-else-if="buildingSettingStatus" />
-      </v-container>
-      <ProgressDialog
-        :dialogStatus="true"
-        v-else-if="!this.$store.state.getStore.loginEmployeeObject"
-      />
-    </v-main>
+          <AuthorizeEmployee v-else-if="authorizeStatus" />
+          <EditPassword v-else-if="editUserPasswordStatus" />
+          <BuildingSetting v-else-if="buildingSettingStatus" />
+        </v-container>
+      </v-main>
+    </div>
+    <ProgressDialog :dialogStatus="true" v-else />
   </v-app>
 </template>
 
@@ -179,6 +187,7 @@ export default {
   },
   data() {
     return {
+      drawer: true,
       authorizeStatus: false,
       editUserPasswordStatus: false,
       buildingSettingStatus: false,
@@ -324,7 +333,8 @@ export default {
     },
     async changeBuildingNameAndReloadData(
       changeBuildingName,
-      changeBuildingId
+      changeBuildingId,
+      changeBuildingOrder
     ) {
       console.log(changeBuildingId);
       console.log(changeBuildingName);
@@ -332,6 +342,7 @@ export default {
       let changeBuilding = {};
       changeBuilding.buildingId = changeBuildingId;
       changeBuilding.buildingName = changeBuildingName;
+      changeBuilding.buildingOrder = changeBuildingOrder;
 
       await this.$store.dispatch("saveBuilding", changeBuilding);
 
@@ -370,7 +381,8 @@ export default {
         .then((dialog) => {
           this.changeBuildingNameAndReloadData(
             dialog.data,
-            selectBuilding.buildingId
+            selectBuilding.buildingId,
+            selectBuilding.buildingOrder
           );
         })
         .catch(() => {});
@@ -387,11 +399,17 @@ export default {
     },
     getBuildingSetting() {
       this.buildingSettingStatus = true;
+      this.authorizeStatus = false;
+      this.editUserPasswordStatus = false;
     },
     getAuthorize() {
+      this.buildingSettingStatus = false;
       this.authorizeStatus = true;
+      this.editUserPasswordStatus = false;
     },
     getEditUserPassword() {
+      this.buildingSettingStatus = false;
+      this.authorizeStatus = false;
       this.editUserPasswordStatus = true;
     },
   },

@@ -81,15 +81,13 @@
           </v-col>
         </v-row>
 
-        <v-divider class="mx-4"></v-divider>
-
         <v-row>
           <v-col cols="12" sm="10">
             <v-card-title>
               <h4>{{ this.$t("textViewSeatTooltip") }}</h4></v-card-title
             >
           </v-col>
-          <v-col cols="12" sm="2" style="margin-top: -10px; margin-left: -5px">
+          <v-col cols="12" sm="2" style="margin-top: -3px; margin-left: -5px">
             <v-tooltip bottom>
               <template v-slot:activator="{ on, attrs }">
                 <div v-bind="attrs" v-on="on">
@@ -104,12 +102,10 @@
           </v-col>
         </v-row>
 
-        <v-divider class="mx-4"></v-divider>
-
         <v-card-title>
           <h4>{{ this.$t("textInformationOfSeat") }}</h4></v-card-title
         >
-        <v-row style="margin-left: 15px">
+        <v-row style="margin-left: 15px;margin-top: -10px">
           <v-radio-group @change="viewSeatInfo" v-model="viewSeatStatus" row>
             <v-radio
               :label="$t('contextMenuViewSeatAboutEmployeeName')"
@@ -238,9 +234,10 @@
               :max="1000"
               v-model="seatDragWidth"
               controls-type="updown"
-              style="width: 250px; margin-left: -30px; top: 5px"
+              style="width: 290px; margin-left: -20px; top: 3px"
               @focus="onFocusInText"
               @blur="outFocusInText"
+              @change="changeSelectSeatWidth"
             ></vue-numeric-input>
           </v-col>
         </v-row>
@@ -261,64 +258,68 @@
               :max="1000"
               v-model="seatDragHeight"
               controls-type="updown"
-              style="width: 250px; margin-left: -30px; top: 5px"
+              style="width: 290px; margin-left: -20px"
               @focus="onFocusInText"
               @blur="outFocusInText"
-            ></vue-numeric-input> </v-col
-          ><v-col>
-            <v-btn
-              color="#2c4f91"
-              @click="clickDragSeatSizeBtn"
-              style="
-                float: right;
-                top: 4px;
-                margin-right: 15px;
-                height: 30px;
-                color: white;
-                font-size: 12px;
-              "
-              >{{ this.$t("btnOk") }}</v-btn
-            ></v-col
-          >
+              @change="changeSelectSeatHeight"
+            ></vue-numeric-input>
+          </v-col>
         </v-row>
-
-        <v-divider class="mx-4"></v-divider>
 
         <v-card-title>
           <h4>{{ this.$t("textMemoToSeat") }}</h4></v-card-title
         >
-        <v-row>
-          <v-col cols="12" sm="9">
-            <v-textarea
-              solo
-              name="input-7-4"
-              style="margin-left: 15px"
-              :label="$t('textInMemoTextArea')"
-              v-model="memoComment"
-              @focus="onFocusInText"
-              @blur="outFocusInText"
-            ></v-textarea>
-          </v-col>
-          <v-col cols="12" sm="3"
-            ><v-btn
-              color="#2c4f91"
-              @click="writeMemo"
-              style="
-                float: right;
-                top: 4px;
-                margin-right: 15px;
-                height: 30px;
-                color: white;
-                font-size: 12px;
-              "
-              >{{ this.$t("btnOk") }}</v-btn
-            ></v-col
-          >
-        </v-row>
+        <v-textarea
+          solo
+          name="input-7-4"
+          style="margin-left: 15px; margin-right: 15px"
+          :label="$t('textInMemoTextArea')"
+          v-model="memoComment"
+          @focus="onFocusInText"
+          @blur="outFocusInText"
+          @change="writeMemo"
+        ></v-textarea>
       </div>
-
       <v-card-actions>
         <v-checkbox
+          v-if="buildSubMenuState"
+          style="margin-left: 7px; margin-top: 257px; height: 10px"
+          v-model="checkBoxSelectAll"
+          :label="$t('checkBoxSelectAll')"
+          @click="changeSelectAllStatus"
+        ></v-checkbox>
+      </v-card-actions>
+      <v-card-actions>
+        <v-checkbox
+          v-if="addSubMenuState"
+          style="margin-left: 7px; height: 10px"
+          v-model="checkBoxSelectAll"
+          :label="$t('checkBoxSelectAll')"
+          @click="changeSelectAllStatus"
+        ></v-checkbox>
+      </v-card-actions>
+      <v-card-actions>
+        <v-checkbox
+          v-if="deleteSubMenuState"
+          style="margin-left: 7px; margin-top: 499px; height: 20px"
+          v-model="checkBoxSelectAll"
+          :label="$t('checkBoxSelectAll')"
+          @click="changeSelectAllStatus"
+        ></v-checkbox>
+      </v-card-actions>
+      <v-card-actions>
+        <v-checkbox
+          v-if="swipeSubMenuState"
+          style="margin-left: 7px; margin-top: 266px; height: 20px"
+          v-model="checkBoxSelectAll"
+          :label="$t('checkBoxSelectAll')"
+          @click="changeSelectAllStatus"
+        ></v-checkbox>
+      </v-card-actions>
+      <v-card-actions>
+        <v-checkbox
+          v-if="notesSubMenuState"
+          style="margin-left: 7px; margin-top: 129px; height: 20px"
           v-model="checkBoxSelectAll"
           :label="$t('checkBoxSelectAll')"
           @click="changeSelectAllStatus"
@@ -336,6 +337,7 @@ import axios from "axios";
 import { refreshToken } from "@/refreshToken.js";
 import "material-design-icons-iconfont/dist/material-design-icons.css";
 const HOST = "http://172.30.6.192:8080";
+
 export default {
   name: "ManageSeats",
   components: {
@@ -363,7 +365,7 @@ export default {
       swipeSubMenuState: false,
       notesSubMenuState: false,
       manageSeatTabOfSelectedSeatsComponentStatus: false,
-      mappingEmployeeComponentStatus: false,
+
       floorItems: [],
       selectedFloorItemsId: null,
       buildingItems: [],
@@ -384,8 +386,6 @@ export default {
       seatDragWidthList: null,
       //라디오 버튼 상태값
       viewSeatStatus: 0,
-      // 자리 불투명도
-      seatOpacity: 1,
       // 텍스트 필드에 키보드 이벤트를 할 때 자리의 이벤트를 막기위함
       textFocusStatus: false,
       // 메모 내용
@@ -426,7 +426,9 @@ export default {
     this.memoComment = this.memoCommentToManageSeats;
     this.checkBoxSelectAll = this.checkBoxSelectAllStatus;
     this.changeSeatSizeInformation();
+
     eventBus.$emit("destroyTabEventFromManageSeats");
+
     // DB에 이미 있을 때 + 층 데이터 건들지 않음
     if (
       this.$store.state.getStore.allFloor &&
@@ -486,6 +488,9 @@ export default {
     eventBus.$off("sendDragMultipleSeatList");
   },
   methods: {
+    test() {
+      console.log(this.memoComment);
+    },
     clickbuildSubMenu() {
       this.buildSubMenuState = true;
       this.addSubMenuState = false;
@@ -531,6 +536,10 @@ export default {
     },
     changeSelectAllStatus() {
       eventBus.$emit("pushSelectAllStatus", this.checkBoxSelectAll);
+      if (!this.checkBoxSelectAll) {
+        this.manageSeatTabOfSelectedSeatsComponentStatus = false;
+        this.clickbuildSubMenu();
+      }
     },
     initNumberOfAddSeatItems() {
       for (let i = 2; i < 100; i *= 2) {
@@ -617,7 +626,6 @@ export default {
       }
     },
     changeFloorSeat() {
-      console.log(this.selectedFloorItemsId);
       if (this.selectedFloorItemsId) {
         eventBus.$emit("moveSeatToAnotherFloor", this.selectedFloorItemsId);
       } else {
@@ -760,14 +768,44 @@ export default {
       );
     },
     changeSelectedNumberOfAddSeat() {
-      console.log(this.selectedNumberOfAddSeat);
       eventBus.$emit(
         "pushSelectedNumberOfAddSeat",
         this.selectedNumberOfAddSeat
       );
     },
-    clickSeatSizeBtn() {
-      eventBus.$emit("sendSeatSize", this.seatWidth, this.seatHeight);
+    changeSelectSeatWidth() {
+      if (isNaN(this.seatDragWidth)) {
+        this.$notice.info({
+          title: this.$i18n.t("alertModifySeatWidth"),
+          styles: {
+            width: "400px",
+            marginLeft: "-815px",
+            top: "118px",
+            color: "red",
+            backgroundColor: "#2a88bd",
+          },
+          duration: 5,
+        });
+        return;
+      }
+      eventBus.$emit("pushChangeSeatWidth", this.seatDragWidth);
+    },
+    changeSelectSeatHeight() {
+      if (isNaN(this.seatDragHeight)) {
+        this.$notice.info({
+          title: this.$i18n.t("alertModifySeatHeight"),
+          styles: {
+            width: "400px",
+            marginLeft: "-815px",
+            top: "118px",
+            color: "red",
+            backgroundColor: "#2a88bd",
+          },
+          duration: 5,
+        });
+        return;
+      }
+      eventBus.$emit("pushChangeSeatHeight", this.seatDragHeight);
     },
     clickDragSeatSizeBtn() {
       eventBus.$emit(

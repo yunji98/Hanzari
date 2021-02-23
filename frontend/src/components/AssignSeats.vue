@@ -309,12 +309,12 @@ export default {
       }
     });
 
-    eventBus.$on("sendSeatSize", (seatWidth, seatHeight) => {
-      this.changeSeatSize(seatWidth, seatHeight);
+    eventBus.$on("pushChangeSeatWidth", (seatDragWidth) => {
+      this.changeSelectSeatWidth(seatDragWidth);
     });
 
-    eventBus.$on("sendDragSeatSize", (seatDragWidth, seatDragHeight) => {
-      this.changeDragSeatSize(seatDragWidth, seatDragHeight);
+    eventBus.$on("pushChangeSeatHeight", (seatDragHeight) => {
+      this.changeSelectSeatHeight(seatDragHeight);
     });
 
     //전체 선택 체크박스
@@ -574,8 +574,8 @@ export default {
     eventBus.$off("moveSeatToAnotherFloor");
     eventBus.$off("pushSelectedFloorObject");
     eventBus.$off("pushChangedCurrentFloorName");
-    eventBus.$off("sendSeatSize");
-    eventBus.$off("sendDragSeatSize");
+    eventBus.$off("pushChangeSeatWidth");
+    eventBus.$off("pushChangeSeatHeight");
     eventBus.$off("pushSelectAllStatus");
     eventBus.$off("pushShowToolTipForSeatStatus");
     eventBus.$off("pushDeleteSelectSeatStatus");
@@ -1041,7 +1041,6 @@ export default {
               false
             );
             eventBus.$emit("pushCheckBoxSelectAllStatus", false);
-            eventBus.$emit("pushMappingEmployeeComponentStatus", false);
             this.tabFocus = false;
           }
         }
@@ -2575,11 +2574,11 @@ export default {
         eventBus.$emit("pushShowSeatTabStatus", true);
       });
 
-      group.on("mouseout", (event) => {
+      group.on("mouseout", () => {
         this.toolTipStatus = false;
       });
 
-      group.on("scaling", (event) => {
+      group.on("scaling", () => {
         //자리 크기가 변화되면 자동으로 도면 움직임이 잠김
         this.lockStatus = false;
         this.moveStatus = true;
@@ -3045,125 +3044,94 @@ export default {
 
       this.floorCanvas.renderAll();
     },
-    changeSeatSize(seatWidth, seatHeight) {
-      //예외 처리
-      if (seatWidth === null || seatHeight === null) {
-        this.$notice.info({
-          title: this.$i18n.t("alertModifyAllSeats"),
-          styles: {
-            width: "400px",
-            marginLeft: "-815px",
-            top: "118px",
-            color: "red",
-            backgroundColor: "#2a88bd",
-          },
-          duration: 5,
-        });
-        return;
-      } else {
-        let newSeatList = [];
-        let eachFloorSeatList = this.getEachFloorSeatList(
-          this.currentSelectedFloorObject.floorId
-        );
-        for (let i = 0; i < eachFloorSeatList.length; i++) {
-          let groupObject = eachFloorSeatList[i].toObject([
-            "employeeDepartmentId",
-            "employeeDepartment",
-          ]);
-          let newEmployeeObject = {};
-          newEmployeeObject.departmentId = groupObject.employeeDepartmentId;
-          newEmployeeObject.department = groupObject.employeeDepartment;
-          let color = this.getDepartmentObjectColor(newEmployeeObject);
-          if (color === null) {
-            color = "#808080";
-          }
-          //eachFloorSeatList[i].set("left", groupObject.left + seatWidth);
-          //eachFloorSeatList[i].set("top", groupObject.top + seatWidth);
-          //-1을 수정함
-          eachFloorSeatList[i].set("width", seatWidth);
-          eachFloorSeatList[i].set("height", seatHeight);
-          eachFloorSeatList[i].item(0).set("width", seatWidth);
-          eachFloorSeatList[i].item(0).set("height", seatHeight);
-          //eachFloorSeatList[i].item(1).set("width", seatWidth - 1);
-          //eachFloorSeatList[i].item(1).set("height", seatHeight - 1);
-          //eachFloorSeatList[i].item(0).set("top", rectangleObject.top + seatWidth);
-          //eachFloorSeatList[i].item(0).set("left", rectangleObject.left + seatHeight);
-          //eachFloorSeatList[i].item(0).set("fill", color);
-          //eachFloorSeatList[i].item(0).set("dirty", true);
-          eachFloorSeatList[i].set("fill", color);
-          eachFloorSeatList[i].set("dirty", true);
-          eachFloorSeatList[i].set("httpRequestPostStatus", true);
-          //var sel = new fabric.ActiveSelection(this.floorCanvas.getObjects(), {
-          //  canvas: this.floorCanvas,
-          //});
-          //this.floorCanvas.setActiveObject(sel);
-          //this.floorCanvas.requestRenderAll();
-          this.floorCanvas.renderAll();
-          this.saveStatus = "ableSave";
+    changeSelectSeatWidth(seatWidth) {
+      let activeObjectList = [];
+      let newSeatList = [];
+      this.floorCanvas.getActiveObjects().forEach((obj) => {
+        let groupObject = obj.toObject([
+          "employeeDepartmentId",
+          "employeeDepartment",
+        ]);
+        let newEmployeeObject = {};
+        newEmployeeObject.departmentId = groupObject.employeeDepartmentId;
+        newEmployeeObject.department = groupObject.employeeDepartment;
+        let color = this.getDepartmentObjectColor(newEmployeeObject);
+        if (color === null) {
+          color = "#808080";
         }
 
-        this.floorCanvas.getObjects().forEach((obj) => {
-          newSeatList.push(obj);
-        });
+        //-1을 수정함
+        obj.set("width", seatWidth);
+        obj.item(0).set("width", seatWidth);
+        obj.set("dirty", true);
+        obj.set("httpRequestPostStatus", true);
+        activeObjectList.push(obj);
 
-        this.allSeatMap.set(
-          this.currentSelectedFloorObject.floorId,
-          newSeatList
-        );
-        eventBus.$emit("pushAllSeatMap", this.allSeatMap);
-      }
+        this.floorCanvas.renderAll();
+        this.saveStatus = "ableSave";
+      });
+
+      this.floorCanvas.getObjects().forEach((obj) => {
+        newSeatList.push(obj);
+      });
+
+      this.allSeatMap.set(this.currentSelectedFloorObject.floorId, newSeatList);
+
+      eventBus.$emit("pushAllSeatMap", this.allSeatMap);
+
+      this.floorCanvas.discardActiveObject();
+
+      let activeSelection = new fabric.ActiveSelection(activeObjectList, {
+        canvas: this.floorCanvas,
+      });
+      this.floorCanvas.setActiveObject(activeSelection);
+
+      this.floorCanvas.requestRenderAll();
     },
-    changeDragSeatSize(seatWidth, seatHeight) {
-      if (seatWidth === null || seatHeight === null) {
-        this.$notice.info({
-          title: this.$i18n.t("alertModifyAllSeats"),
-          styles: {
-            width: "400px",
-            marginLeft: "-815px",
-            top: "118px",
-            color: "red",
-            backgroundColor: "#2a88bd",
-          },
-          duration: 5,
-        });
-        return;
-      } else {
-        let newSeatList = [];
-        this.floorCanvas.getActiveObjects().forEach((obj) => {
-          let groupObject = obj.toObject([
-            "employeeDepartmentId",
-            "employeeDepartment",
-          ]);
-          let newEmployeeObject = {};
-          newEmployeeObject.departmentId = groupObject.employeeDepartmentId;
-          newEmployeeObject.department = groupObject.employeeDepartment;
-          let color = this.getDepartmentObjectColor(newEmployeeObject);
-          if (color === null) {
-            color = "#808080";
-          }
-          //-1을 수정함
-          obj.set("width", seatWidth);
-          obj.set("height", seatHeight);
-          obj.item(0).set("width", seatWidth);
-          obj.item(0).set("height", seatHeight);
-          obj.set("dirty", true);
-          obj.set("httpRequestPostStatus", true);
+    changeSelectSeatHeight(seatHeight) {
+      let activeObjectList = [];
+      let newSeatList = [];
+      this.floorCanvas.getActiveObjects().forEach((obj) => {
+        let groupObject = obj.toObject([
+          "employeeDepartmentId",
+          "employeeDepartment",
+        ]);
 
-          this.floorCanvas.renderAll();
-          this.saveStatus = "ableSave";
-        });
-        this.floorCanvas.getObjects().forEach((obj) => {
-          newSeatList.push(obj);
-        });
-        this.allSeatMap.set(
-          this.currentSelectedFloorObject.floorId,
-          newSeatList
-        );
-        eventBus.$emit("pushAllSeatMap", this.allSeatMap);
+        let newEmployeeObject = {};
+        newEmployeeObject.departmentId = groupObject.employeeDepartmentId;
+        newEmployeeObject.department = groupObject.employeeDepartment;
+        let color = this.getDepartmentObjectColor(newEmployeeObject);
+        if (color === null) {
+          color = "#808080";
+        }
 
-        this.floorCanvas.discardActiveObject();
-        this.floorCanvas.requestRenderAll();
-      }
+        //-1을 수정함
+        obj.set("height", seatHeight);
+        obj.item(0).set("height", seatHeight);
+        obj.set("dirty", true);
+        obj.set("httpRequestPostStatus", true);
+        activeObjectList.push(obj);
+
+        this.floorCanvas.renderAll();
+        this.saveStatus = "ableSave";
+      });
+
+      this.floorCanvas.getObjects().forEach((obj) => {
+        newSeatList.push(obj);
+      });
+
+      this.allSeatMap.set(this.currentSelectedFloorObject.floorId, newSeatList);
+
+      eventBus.$emit("pushAllSeatMap", this.allSeatMap);
+
+      this.floorCanvas.discardActiveObject();
+
+      let activeSelection = new fabric.ActiveSelection(activeObjectList, {
+        canvas: this.floorCanvas,
+      });
+      this.floorCanvas.setActiveObject(activeSelection);
+
+      this.floorCanvas.requestRenderAll();
     },
     downloadURI(uri, name) {
       var link = document.createElement("a");

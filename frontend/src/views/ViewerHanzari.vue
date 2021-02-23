@@ -1,19 +1,11 @@
 <template>
   <v-app id="app">
     <div v-if="this.$store.state.getStore.otherFloorsSeatMap" class="parent">
-      <v-navigation-drawer v-model="leftDrawer" app :width="450">
-        <ViewerTabs />
+      <v-navigation-drawer v-model="leftDrawer" app :width="375">
+        <ViewerTabs :leftDrawer="leftDrawer" />
       </v-navigation-drawer>
 
       <v-app-bar app color="#2c4f91" dark flat :height="30">
-        <v-icon
-          size="30px"
-          dark
-          style="background-color: #1c3563"
-          @click="leftDrawer = !leftDrawer"
-          v-if="leftDrawer"
-          >keyboard_arrow_left</v-icon
-        >
         <v-icon
           size="30px"
           dark
@@ -23,45 +15,26 @@
           >keyboard_arrow_right</v-icon
         >
         <v-divider vertical></v-divider>
-        <div class="mx-3">
+        <div class="mx-3" v-if="!leftDrawer">
           <v-toolbar-title>{{ $t("projectName") }}</v-toolbar-title>
         </div>
         <v-spacer></v-spacer>
 
-        <v-btn text disabled id="custom-disabled">{{
+        <v-btn text disabled id="custom-disabled" v-if="!rightDrawer">{{
           this.$store.state.userStore.employeeName + $t("user")
         }}</v-btn>
 
-        <v-divider vertical></v-divider>
-        <v-btn
-          text
-          v-if="saveStatus"
-          v-confirm="{
-            ok: backToMyPage,
-            message: message,
-            html: true,
-            okText: okText,
-            cancelText: cancelText,
-          }"
-        >
-          {{ $t("backToMyPage") }}
-        </v-btn>
-        <v-btn text @click="backToMyPage" v-if="!saveStatus">
+        <v-divider vertical v-if="!rightDrawer"></v-divider>
+        <v-btn text @click="backToMyPage" v-if="!rightDrawer">
           {{ $t("backToMyPage") }}
         </v-btn>
 
-        <v-divider vertical></v-divider>
-        <v-btn text @click="logout">{{ $t("logout") }}</v-btn>
+        <v-divider vertical v-if="!rightDrawer"></v-divider>
+        <v-btn text @click="logout" v-if="!rightDrawer">{{
+          $t("logout")
+        }}</v-btn>
 
-        <v-divider vertical></v-divider>
-        <v-icon
-          size="30px"
-          dark
-          style="background-color: #1c3563"
-          @click="rightDrawer = !rightDrawer"
-          v-if="rightDrawer"
-          >keyboard_arrow_right</v-icon
-        >
+        <v-divider vertical v-if="!rightDrawer"></v-divider>
         <v-icon
           size="30px"
           dark
@@ -77,10 +50,33 @@
         <v-navigation-drawer
           v-model="rightDrawer"
           app
-          :width="450"
+          :width="375"
           :right="true"
         >
-          <v-toolbar color="#2c4f91" height="95" dark> </v-toolbar>
+          <v-toolbar color="#2c4f91" height="35" dark>
+            <v-spacer></v-spacer>
+            <v-btn text disabled id="custom-disabled">{{
+              this.$store.state.userStore.employeeName + $t("user")
+            }}</v-btn>
+
+            <v-divider vertical></v-divider>
+            <v-btn text @click="backToMyPage">
+              {{ $t("backToMyPage") }}
+            </v-btn>
+
+            <v-divider vertical></v-divider>
+            <v-btn text @click="logout">{{ $t("logout") }}</v-btn>
+
+            <v-divider vertical></v-divider>
+            <v-icon
+              size="30px"
+              dark
+              style="background-color: #1c3563"
+              @click="rightDrawer = !rightDrawer"
+              v-if="rightDrawer"
+              >keyboard_arrow_right</v-icon
+            >
+          </v-toolbar>
           <FlowInformationTable />
         </v-navigation-drawer>
       </v-main>
@@ -90,13 +86,13 @@
 </template>
 
 <script>
+import { eventBus } from "../main";
+
 import ViewerTabs from "@/components/ViewerTabs.vue";
 import ViewerAssignSeats from "@/components/ViewerAssignSeats.vue";
 import FlowInformationTable from "@/components/FlowInformationTable.vue";
 import ProgressDialog from "@/components/ProgressDialog.vue";
 import DepartmentColorChips from "@/components/DepartmentColorChips.vue";
-
-const HOST = "http://172.30.6.192:8080";
 
 export default {
   name: "ViewerHanzari",
@@ -111,7 +107,6 @@ export default {
     return {
       leftDrawer: null,
       rightDrawer: false,
-      saveStatus: null,
     };
   },
   async created() {
@@ -130,6 +125,13 @@ export default {
 
     await this.getOtherFloorImageList();
     await this.getOtherFloorsSeatMap();
+
+    eventBus.$on("closeLeftDrawer", () => {
+      this.leftDrawer = false;
+    });
+  },
+  beforeDestroy() {
+    eventBus.$off("closeLeftDrawer");
   },
   methods: {
     async getEmployeeList() {

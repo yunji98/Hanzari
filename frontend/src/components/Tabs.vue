@@ -1,6 +1,18 @@
 <template>
   <div>
-    <v-toolbar color="#2c4f91" dark :height="30"> </v-toolbar>
+    <v-toolbar color="#2c4f91" dark :height="30"
+      ><v-icon
+        size="30px"
+        dark
+        style="background-color: #1c3563"
+        @click="closeLeftDrawer"
+        >keyboard_arrow_left</v-icon
+      ><v-divider vertical></v-divider>
+      <div class="mx-3">
+        <v-toolbar-title>{{ $t("projectName") }}</v-toolbar-title>
+      </div>
+    </v-toolbar>
+    
     <v-tabs
       v-model="tab"
       background-color="#2c4f91"
@@ -164,6 +176,9 @@ export default {
     });
   },
   methods: {
+    closeLeftDrawer() {
+      eventBus.$emit("closeLeftDrawer");
+    },
     destroyManageSeatsEvent() {
       eventBus.$off("pushManageSeatTabOfSelectedSeatsComponentStatus");
       eventBus.$off("pushCheckBoxSelectAllStatus");

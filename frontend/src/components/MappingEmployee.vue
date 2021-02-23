@@ -13,23 +13,27 @@
       ></v-text-field
     ></v-card-title>
 
-    <div style="margin-left: 15px; margin-right: 15px">
+    <!--div style="margin-left: 15px; margin-right: 15px"-->
+    <div style="margin-left: 5px; margin-right: 5px">
       <v-data-table
         :headers="headers"
         :items="this.$store.state.getStore.allEmployee"
         :search="search"
-        height="450px"
+        :page.sync="page"
+        :items-per-page="itemsPerPage"
         class="elevation-1"
         :no-data-text="$t('dataTabelNoDataTextEmployee')"
-        :footer-props="{
-          'items-per-page-text': $t('dataTabelPerPageTextEmployee'),
-        }"
+        hide-default-header
+        hide-default-footer
+        @page-count="pageCount = $event"
       >
         <template v-slot:item="row">
           <tr>
-            <td style="font-size: 12px">{{ row.item.name }}</td>
-            <td style="font-size: 12px">{{ row.item.department }}</td>
-            <td style="font-size: 12px">{{ row.item.number }}</td>
+            <td style="font-size: 12px; width: 300px">
+              <b>{{ row.item.name }}</b>
+              <br>{{ row.item.department }}
+              <br>{{ row.item.number }}
+            </td>
             <td>
               <v-btn
                 outlined
@@ -43,6 +47,10 @@
           </tr>
         </template>
       </v-data-table>
+      <v-pagination
+        v-model="page"
+        :length="pageCount"
+      ></v-pagination>
     </div>
   </div>
 </template>
@@ -54,6 +62,10 @@ export default {
   name: "MappingEmployee",
   data() {
     return {
+      page: 1,
+      pageCount: 0,
+      itemsPerPage:9,
+
       search: "",
       headers: [
         {
